@@ -5,13 +5,11 @@ import java.net.URI
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
-import es.upm.fi.dia.oeg.morph.r2rml.InvalidR2RLocationException
 import java.io.InputStream
 import com.hp.hpl.jena.rdf.model.RDFReader
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import es.upm.fi.oeg.morph.voc.RDFFormat
 import com.hp.hpl.jena.n3.turtle.TurtleParseException
-import es.upm.fi.dia.oeg.morph.r2rml.InvalidR2RDocumentException
 import org.openjena.riot.RiotException
 import com.weiglewilczek.slf4s.Logging
 import es.upm.fi.oeg.siq.sparql.Sparql
@@ -44,8 +42,8 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
 		this.read(iss);
 		} catch {
 		  case ex:IOException=>
-			throw new InvalidR2RLocationException(ex.getMessage(), ex);
-		}				
+			throw new IllegalArgumentException//InvalidR2rmlLocationException(ex.getMessage(), ex)
+			}				
 	  }
   }
 	
@@ -57,9 +55,9 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
 	  case e:TurtleParseException=>
 		val msg = "Error parsing the r2r document: "+e.getMessage
 		logger.error(msg)
-		throw new InvalidR2RDocumentException(msg,e)
+		throw new IllegalArgumentException//InvalidR2rmlDocumentException(msg,e)
 	  case e:RiotException =>
-		throw new InvalidR2RDocumentException("Error reading  r2r document: "+e.getMessage,e)
+		throw new IllegalArgumentException//InvalidR2rmlDocumentException("Error reading  r2r document: "+e.getMessage,e)
 	}
 	model.write(System.out,RDFFormat.TTL)
 	//readTriplesMap(null);
@@ -142,15 +140,17 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
         }
   }
   
+  
   private def readPOMaps(tMapUri:Node)={
     val query=new Query
     query.setQuerySelectType
-    query.addResultVars("predicate","pCol","oConst","oCol","oTemp","odType","gCol","graph","parentTMap")
+    query.addResultVars("predicate","pCol","oConst","oCol","oTemp","odType","gCol","graph","parentTMap","directPredicate")
 	val group=
 	Group(List(Tgp(tMapUri,(RDF.typeProp,R2RML.TriplesMap),
                            (R2RML.predicateObjectMap,"poMap")),
-               Tgp("poMap",(R2RML.predicateMap,"pMap"),
+               Tgp("poMap",//(R2RML.predicateMap,"pMap"),                   
                            (R2RML.objectMap,"oMap"))),
+          OpTgp("poMap",(R2RML.predicate,"directPredicate")),
           OpTgp("poMap",(R2RML.graph,"graph")),
           OpTgp("pMap",(R2RML.constant,"predicate")),
           OpTgp("pMap",(R2RML.column,"pCol")),
@@ -166,8 +166,10 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
     logger.debug("Query po: "+query.serialize);
     val qexec = QueryExecutionFactory.create(query.serialize, model)
     val results = qexec.execSelect
-    results.map{soln=>
-      val p=PredicateMap(soln.res("predicate"),soln.lit("pCol"),null)
+    results.map{soln=>      
+      val predicate=if (soln.res("predicate")!=null) soln.res("predicate")
+        else soln.res("directPredicate")
+      val p=PredicateMap(predicate,soln.lit("pCol"),null)
       if (soln.res("parentTMap")!=null){
         if (!triplesMaps.contains(soln.res("parentTMap").getURI))
           readTriplesMap(soln.res("parentTMap"))
@@ -194,3 +196,7 @@ object R2rmlReader{
     r
   }
 }
+
+//class InvalidR2rmlDocumentException(msg:String,e:Throwable) extends java.lang.Exception(msg,e)
+//class InvalidR2rmlLocationException(msg:String,e:Throwable) extends java.lang.Exception()
+  

@@ -12,8 +12,8 @@
 
   <modules>
     <module>morph-core</module>
-    <module>../morph</module>
-    <module>morph-r2rml-tc</module>
+   <!--  <module>../morph</module>-->
+    <!-- <module>morph-r2rml-tc</module>-->
     <module>morph-querygen</module>
   </modules>
   <properties>
@@ -28,4 +28,28 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <repositories>
+    <repository>
+      <id>aldebaran</id>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <url>http://aldebaran.dia.fi.upm.es/artifactory/sstreams-releases-local</url>
+      <layout>default</layout>
+    </repository>
+    <repository>
+      <id>aldebaran-snapshot</id>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <url>http://aldebaran.dia.fi.upm.es/artifactory/sstreams-snapshots-local</url>
+      <layout>default</layout>
+    </repository>
+  </repositories>
 </project>

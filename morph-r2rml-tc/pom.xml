@@ -17,21 +17,6 @@
   </properties>
   <dependencies>
     <dependency>
-	  <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_2.9.0</artifactId>
-	  <version>1.6.1</version>
-	</dependency> 
-	<dependency>
-      <groupId>org.scala-tools.testing</groupId>
-      <artifactId>scalacheck_2.9.0</artifactId>
-      <version>1.9</version>
-    </dependency>
-    <dependency>
-      <groupId>es.upm.fi.dia.oeg.integrator</groupId>
-      <artifactId>morph</artifactId>
-      <version>0.0.6-SNAPSHOT</version>  
-    </dependency>
-    <dependency>
       <groupId>es.upm.fi.oeg.morph</groupId>
       <artifactId>morph-querygen</artifactId>
       <version>0.0.1-SNAPSHOT</version>  
@@ -55,8 +40,10 @@
 	  <plugin>
         <groupId>org.scala-tools</groupId>
         <artifactId>maven-scala-plugin</artifactId>
+        <version>2.15.2</version>
         <executions>
           <execution>
+            <phase>post-clean</phase>
             <goals>
               <goal>compile</goal>
               <goal>testCompile</goal>

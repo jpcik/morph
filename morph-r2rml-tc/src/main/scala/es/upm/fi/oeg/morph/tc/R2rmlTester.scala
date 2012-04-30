@@ -1,6 +1,6 @@
 package es.upm.fi.oeg.morph.tc
 import scala.io.Source
-import es.upm.fi.dia.oeg.morph.R2RProcessor
+//import es.upm.fi.dia.oeg.morph.R2RProcessor
 import es.upm.fi.oeg.morph.execute.RdfGenerator
 import java.io.File
 import java.util.Properties
@@ -14,6 +14,7 @@ import com.hp.hpl.jena.graph.Graph
 import com.hp.hpl.jena.query.DatasetFactory
 import es.upm.fi.oeg.morph.voc.RDFFormat
 import es.upm.fi.oeg.morph.r2rml.R2rmlReader
+import es.upm.fi.oeg.morph.relational.JDBCRelationalModel
 
 class SuiteTester(testPath:String,val name:String){
   val props=load(getClass.getClassLoader().getResourceAsStream("config.properties"))
@@ -39,12 +40,13 @@ class SuiteTester(testPath:String,val name:String){
     println("output: "+tc.output)
     output.getReader(RDFFormat.N3).read(output,new FileInputStream(testPath+"/"+name+"/"+tc.output),"")
     output.write(System.out,RDFFormat.N3)
-    val r2r=new R2RProcessor
-    props.setProperty(R2RProcessor.R2R_MAPPING_URL,testPath+"/"+name+"/"+ tc.mappingDoc);
-    r2r.configure(props);
+    //val r2r=new R2RProcessor
+    //props.setProperty(R2RProcessor.R2R_MAPPING_URL,testPath+"/"+name+"/"+ tc.mappingDoc);
+    //r2r.configure(props);
     val reader=R2rmlReader(testPath+"/"+name+"/"+ tc.mappingDoc)
-  
-    val ds=new RdfGenerator(reader,r2r.relational).generate
+    val relat=new JDBCRelationalModel(props)
+    
+    val ds=new RdfGenerator(reader,relat).generate
     ds.getDefaultModel.write(System.out,RDFFormat.N3)
     println("comparing "+compare(DatasetFactory.create(output).asDatasetGraph,ds.asDatasetGraph))
     ds

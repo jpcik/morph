@@ -5,23 +5,29 @@ class RdbQueryGenerator(val tm:TriplesMap) {
   def formatTemplate(template:String,alias:String)={
     val parts=template.split(Array('{','}'))
     if (parts.size==3)
-      "('"+parts(0)+"' || \""+parts(1)+"\" || '"+parts(2)+"') AS "+alias
+      "('"+parts(0)+"' || "+formatColumn(parts(1))+" || '"+parts(2)+"') AS "+alias
     else
-      "('"+parts(0)+"' || \""+parts(1)+"\") AS "+alias
+      "('"+parts(0)+"' || "+formatColumn(parts(1))+") AS "+alias
   }
   def formatSubjectTemplate=
-    formatTemplate(tm.subjectMap.template,"subj")
+    formatTemplate(tm.subjectMap.template,"subject")
   
-  def formatColumn(column:String)="\""+column+"\""
-  def formatTable(table:String)="\""+table+"\""
+  def formatColumn(column:String)=column
+  def formatTable(table:String)=table
   def fromTable=
     if (tm.logicalTable.tableName!=null) formatTable(tm.logicalTable.tableName)
     else "("+tm.logicalTable.sqlQuery+")"
   def selectSubject=
-    if (tm.subjectMap.column!=null) formatColumn(tm.subjectMap.column)
+    if (tm.subjectMap.column!=null) formatColumn(tm.subjectMap.column) +"AS subject"
     else formatSubjectTemplate
+   
+  def selectObject={
+    tm.poMaps.map{po=>
+      if (po.objectMap!=null) po.objectMap.col+" AS "+po.id+","
+      else ""}.mkString.dropRight(1)  
+  }
     
   def query={    
-    "SELECT "+selectSubject+" FROM "+fromTable
+    "SELECT "+selectSubject+","+selectObject+" FROM "+fromTable
   }
 }

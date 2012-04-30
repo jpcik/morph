@@ -1,5 +1,4 @@
 package es.upm.fi.oeg.morph.relational
-import es.upm.fi.dia.oeg.morph.relational.RelationalModel
 import java.util.Properties
 import java.sql.ResultSet
 import java.sql.ResultSetMetaData
@@ -27,9 +26,9 @@ import javax.sql.RowSetMetaData
 import javax.sql.rowset.RowSetMetaDataImpl
 import java.sql.Types
 
-class RestRelationalModel extends RelationalModel{
-  override def configure(props:Properties){////throws InstantiationException, IllegalAccessException, ClassNotFoundException;
-  }
+class RestRelationalModel(props:Properties) extends RelationalModel(props){
+  //override def configure(props:Properties){////throws InstantiationException, IllegalAccessException, ClassNotFoundException;
+  //}
   override def query(queryString:String):ResultSet={
     val c = Client.create();
     val webResource = c.resource("http://api.citybik.es/bizi.json")
