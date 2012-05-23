@@ -9,30 +9,12 @@
   </parent>
   <groupId>es.upm.fi.oeg.morph</groupId>
   <artifactId>morph-r2rml-tc</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
   <name>morph-r2rml-tc</name>
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-  <dependencies>
-    <dependency>
-      <groupId>es.upm.fi.oeg.morph</groupId>
-      <artifactId>morph-querygen</artifactId>
-      <version>0.0.1-SNAPSHOT</version>  
-    </dependency>
-    <dependency>
-      <groupId>es.upm.fi.oeg.morph</groupId>
-      <artifactId>morph-core</artifactId>
-      <version>0.0.1-SNAPSHOT</version>  
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.7</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  </properties>  
+ 
   <build>
     <sourceDirectory>src/main/scala</sourceDirectory>
 	<testSourceDirectory>src/test/scala</testSourceDirectory>

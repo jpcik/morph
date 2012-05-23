@@ -39,7 +39,8 @@ object Manifest extends Sparql{
   queryt.addResultVars("db","id","script","tc","tcid","mapping","hasoutput","output")
   //val block=new ElementTriplesBlock
   //block.add
-  val tgs=List(
+  val tgs=Group(
+    List(
   Tgp("db",(RDF.typeProp,Rdb2RdfTest.dataBase),
            (DCTerms.identifier,"id"),
            (Rdb2RdfTest.sqlScriptFile,"script"),
@@ -47,9 +48,10 @@ object Manifest extends Sparql{
   Tgp("tc",(RDF.typeProp,Rdb2RdfTest.r2rml),
            (DCTerms.identifier,"tcid"),
            (Rdb2RdfTest.mappingDocument,"mapping"),
-           (Rdb2RdfTest.output,"output"),
-           (Rdb2RdfTest.hasExpectedOutput,"hasoutput")))
-  queryt.setQueryPattern(tgs)
+           //(Rdb2RdfTest.output,"output"),
+           (Rdb2RdfTest.hasExpectedOutput,"hasoutput"))),
+  OpTgp("tc",(Rdb2RdfTest.output,"output")))
+  queryt.setQueryPattern(tgs.groupelement)
   /*
   def iterator(rs:ResultSet)=new Iterator[QuerySolution]{
     override def next=rs.next
@@ -64,8 +66,8 @@ object Manifest extends Sparql{
 	val results = qexec.execSelect.toList
 
 	val tcases=results.map(qs=>
-	    new TestCase(qs.getLiteral("tcid").getString,"",qs.getLiteral("mapping").getString,
-	        qs.getLiteral("hasoutput").getBoolean,qs.getLiteral("output").getString))
+	    new TestCase(qs.getLiteral("tcid").getString,"",qs.getLiteral("mapping"),
+	        qs.getLiteral("hasoutput").getBoolean,qs.getLiteral("output")))
 	println(tcases.length)
 	val db=new Database(results.head.getLiteral("id").getString,"",
 	    results.head.getLiteral("script").getString,tcases.toArray)

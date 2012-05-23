@@ -13,7 +13,6 @@ abstract class R2RMLTest(val name:String) extends JUnitSuite with ShouldMatchers
   val suit=new SuiteTester(testPath,name)
 }
 
-
 class D000Test extends R2RMLTest("D000-1table1column0rows") {
 
   @Before def initialize() {

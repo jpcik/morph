@@ -1,6 +1,5 @@
 package es.upm.fi.oeg.morph.tc
 import scala.io.Source
-//import es.upm.fi.dia.oeg.morph.R2RProcessor
 import es.upm.fi.oeg.morph.execute.RdfGenerator
 import java.io.File
 import java.util.Properties
@@ -15,17 +14,20 @@ import com.hp.hpl.jena.query.DatasetFactory
 import es.upm.fi.oeg.morph.voc.RDFFormat
 import es.upm.fi.oeg.morph.r2rml.R2rmlReader
 import es.upm.fi.oeg.morph.relational.JDBCRelationalModel
+import org.openjena.riot.RiotLoader
+import org.openjena.riot.Lang
+import org.openjena.riot.RiotWriter
 
 class SuiteTester(testPath:String,val name:String){
   val props=load(getClass.getClassLoader().getResourceAsStream("config.properties"))
+  
   val manifestFile="manifest.ttl"
   val manifest=Manifest(testPath+"/"+name+"/"+manifestFile,name)
   val script=Source.fromFile(testPath+"/"+name+"/"+manifest.database.scriptFile).getLines.map(_+"\r\n")reduceLeft(_+_)
-  val db=new DBManager()
+  val db=new DBManager
   db.clearDB
   db.createDB(script)
-  
-
+ 
   private def load(fis:InputStream)={
     val props = new Properties
     props.load(fis)    
@@ -33,26 +35,36 @@ class SuiteTester(testPath:String,val name:String){
     props
   }  
   
-  def getTc(id:String)=manifest.database.testcases.find(_.id.equals(id))
+  
+ def getTc(id:String)=manifest.database.testcases.find(_.id.equals(id))
+ 
   
   def testTc(tc:TestCase)={
-    val output=ModelFactory.createDefaultModel()
-    println("output: "+tc.output)
-    output.getReader(RDFFormat.N3).read(output,new FileInputStream(testPath+"/"+name+"/"+tc.output),"")
-    output.write(System.out,RDFFormat.N3)
     //val r2r=new R2RProcessor
     //props.setProperty(R2RProcessor.R2R_MAPPING_URL,testPath+"/"+name+"/"+ tc.mappingDoc);
     //r2r.configure(props);
-    val reader=R2rmlReader(testPath+"/"+name+"/"+ tc.mappingDoc)
+   val reader=R2rmlReader(testPath+"/"+name+"/"+ tc.mappingDoc)
     val relat=new JDBCRelationalModel(props)
     
     val ds=new RdfGenerator(reader,relat).generate
-    ds.getDefaultModel.write(System.out,RDFFormat.N3)
-    println("comparing "+compare(DatasetFactory.create(output).asDatasetGraph,ds.asDatasetGraph))
+    RiotWriter.writeNQuads(System.out,ds.asDatasetGraph)
+    //ds.getDefaultModel.write(System.out,RDFFormat.TTL)
+    //val output=ModelFactory.createDefaultModel()
+    println("output: "+tc.output)
+    //val o:LangRIOT=null
+    if (tc.output!=null) {
+      val output=RiotLoader.load(testPath+"/"+name+"/"+tc.output, Lang.NQUADS);
+      RiotWriter.writeNQuads(System.out,output)
+      //output.getReader("N-Quads").read(output,new FileInputStream(testPath+"/"+name+"/"+tc.output),"")
+      //output.write(System.out,RDFFormat.N3)
+      
+         println("comparing "+compare(output,ds.asDatasetGraph))
+    }
+
     ds
   }
   
-  def compare(d1:DatasetGraph,d2:DatasetGraph):Boolean={
+   def compare(d1:DatasetGraph,d2:DatasetGraph):Boolean={
     val c1=d1.getDefaultGraph().isIsomorphicWith(d2.getDefaultGraph)
     if (d1.listGraphNodes.isEmpty && d2.listGraphNodes.isEmpty)
     { c1}
@@ -69,7 +81,7 @@ class SuiteTester(testPath:String,val name:String){
     g1.isIsomorphicWith(g2)
     //true
   }
-  
+
   def testAll{
     manifest.database.testcases.foreach{tc=>
       //try{
@@ -102,4 +114,5 @@ object R2rmlTester {
       //test(dir)      
     }
   }
+  
 }
