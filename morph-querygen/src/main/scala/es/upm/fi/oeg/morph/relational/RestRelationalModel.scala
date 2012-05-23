@@ -70,7 +70,7 @@ abstract class Decoder{
   def getResultSet(json:String):RestResultSet
 }
 
-abstract case class RestResult(resultName:String,fieldNames:Set[String]){
+abstract class RestResult(val resultName:String,val fieldNames:Set[String]){
   def getValue(fieldName:String):String
 }
 

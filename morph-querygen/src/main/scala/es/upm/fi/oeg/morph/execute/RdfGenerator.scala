@@ -6,50 +6,64 @@ import es.upm.fi.oeg.morph.voc.RDF
 import es.upm.fi.oeg.morph.r2rml.R2rmlReader
 import es.upm.fi.oeg.morph.querygen.RdbQueryGenerator
 import es.upm.fi.oeg.morph.relational.RelationalModel
+import java.sql.Types
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
+import java.sql.SQLSyntaxErrorException
+import com.hp.hpl.jena.rdf.model.Resource
+import com.hp.hpl.jena.sparql.core.DatasetGraph
+
+class RelationalQueryException(msg:String,e:Throwable) extends Exception(msg,e)
 
 class RdfGenerator(model:R2rmlReader,relational:RelationalModel) {
+  //def graph(name:String)
   def generate={
-    val m = ModelFactory.createDefaultModel()
+    val m = ModelFactory.createDefaultModel
 	val ds = DatasetFactory.create(m) 
 		
     val queries=model.tMaps.foreach{tMap=>
       val q=new RdbQueryGenerator(tMap).query
       println("query "+q)
-      val res=relational.query(q)
+      
+      val res=try{
+        relational.query(q)
+      } catch {case ex:SQLSyntaxErrorException=>throw new RelationalQueryException("Invalid query: "+ex.getMessage,ex)} 
       
       val tgen=new TripleGenerator(ds,tMap)
-      //val tIns = new TriplesMapInstance(tMap)
-      //tIns.setResultSet(res)
-      //tIns.setDataSource(ds)
       while (res.next){        
-        val subj = tgen.genSubject(res)//tIns.getGeneratedSubject()
-        val tMapModel = ds.getDefaultModel//getModel(d, tIns.getGeneratedGraphUri());
+        val subj = tgen.genSubject(res)
+        val tMapModel = if (tMap.subjectMap.graphMap==null) ds.getDefaultModel
+          else if (tMap.subjectMap.graphMap.constant!=null) 
+            if (ds.getNamedModel(tMap.subjectMap.graphMap.constant.asResource.getURI)!=null)
+              ds.getNamedModel(tMap.subjectMap.graphMap.constant.asResource.getURI)
+            else {
+              ds.addNamedModel(tMap.subjectMap.graphMap.constant.asResource.getURI,ModelFactory.createDefaultModel)
+              ds.getNamedModel(tMap.subjectMap.graphMap.constant.asResource.getURI)
+            }
+          else if (tMap.subjectMap.graphMap.template!=null){
+            val gname=tgen.genGraph(res)
+            if (ds.getNamedModel(gname)==null)
+              ds.addNamedModel(gname,ModelFactory.createDefaultModel)
+            ds.getNamedModel(gname)
+                     
+          }else null
+            
+          
 				
-        //if (tIns.getGeneratedRdfType() !=null)
         if (tgen.genRdfType!=null)
           tMapModel.add(subj,RDF.typeProp,tgen.genRdfType)
 								
 				
 		tMap.poMaps.foreach{prop=>
-		  val propIns = POGenerator(ds,prop)
-		  //propIns.setResultSet(res) //TODO this is awful
-					
-		  //val pModel = ds.getDefaultModel//getModel(d,propIns.getGeneratedGraphUri());
-		  if (prop.refObjectMap!=null){
-		    val obj=new TripleGenerator(ds,prop.refObjectMap.parentTriplesMap).genSubject(res)
-		    tMapModel.add(subj,propIns.genPredicate,obj)
-		  }
-		  else{
-		  
-		  val column = prop.objectMap.column.replace("\"","")
-		  val datatype = prop.objectMap.dtype
-		  //logger.info("bigbig"+propIns.getGeneratedProperty());
-		  if (column!=null){
-		    tMapModel.add(subj,propIns.genPredicate,res.getString(prop.id),datatype)		
-		  }
-		  else				
-		    tMapModel.add(subj,propIns.genPredicate,prop.objectMap.constant)
-		  }
+		  val parentTmap=if (prop.refObjectMap!=null) model.triplesMaps(prop.refObjectMap.parentTriplesMap)
+		    else null
+		  val propIns = POGenerator(ds,prop,parentTmap)
+		  val po=propIns.generate(null,res)
+		  if (po._2!=null)
+			tMapModel.add(subj,propIns.genPredicate,po._1.toString,po._2)
+		  else if (po._1.isInstanceOf[Resource])
+		    tMapModel.add(subj,propIns.genPredicate,po._1.asInstanceOf[Resource])
+		  else
+		    tMapModel.add(subj,propIns.genPredicate,po._1.toString)	
 		}
       }
     }
