@@ -10,9 +10,12 @@ object R2rmlUtils {
   
   def extractColumn(sm:TermMap)={
     val col=  if (sm.column!=null) sm.column
-              else extractTemplateVal(sm.template)
+              else if (sm.template!=null) extractTemplateVal(sm.template)
+              else null
     //col
-    col.replace("\"","")
+    if (col!=null)
+      col.replace("\"","")
+    else null
   }
     
   def generateTemplateVal(template:String,value:String)={

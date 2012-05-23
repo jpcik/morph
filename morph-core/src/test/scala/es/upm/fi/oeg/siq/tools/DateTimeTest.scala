@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 class DateTimeTest extends JUnitSuite with ShouldMatchersForJUnit with Checkers {
   @Before def initialize() {}
   
-  @Test def testParseDate(){
+  @Test def testParseDate(){    
     val sdf=new SimpleDateFormat("yyy-MM-dd HH:mm:ss.SSS")
     val df=DateFormat.getDateTimeInstance(DateFormat.FULL,DateFormat.MEDIUM,Locale.UK)
       df.setTimeZone(TimeZone.getTimeZone("GMT"))

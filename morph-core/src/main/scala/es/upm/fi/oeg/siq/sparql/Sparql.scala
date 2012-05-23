@@ -13,14 +13,16 @@ import com.hp.hpl.jena.query.QuerySolution
 import com.hp.hpl.jena.rdf.model.Literal
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype._
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
+import com.hp.hpl.jena.sparql.syntax.ElementUnion
 
 trait Sparql{
   implicit def str2Node(s:String)=Node.createVariable(s)
   implicit def res2Node(r:Resource)=r.asNode
   implicit def prop2Node(p:Property)=p.asNode
   //implicit def tg2etb(e:TripleGraph)=e.tblock
-  implicit def query2sp(q:Query)=new SparqlQuery(q)
+  implicit def query2sp(q:Query)=new QueryPlus(q)
   implicit def tgl2etb(tg:List[Tgp])=new TripleBlock(tg).block
+  implicit def tgp2etb(tgp:Tgp)=tgp.tblock
   implicit def optg2etb(tg:OpTgp)=tg.opBlock
   implicit def literal2string(l:Literal)=if (l!=null) l.getString else null
   implicit def sol2extsol(qs:QuerySolution)=ExtendedSolution(qs)
@@ -29,6 +31,14 @@ trait Sparql{
       val g= new ElementGroup
       e.foreach(g.addElement(_))
       g
+    }
+  }
+  
+  case class Union(e:Element*){
+    val unionElement={
+      val u=new ElementUnion
+      e.foreach(u.addElement(_))
+      u
     }
   }
   
@@ -54,14 +64,46 @@ trait Sparql{
       new ElementOptional(e) 
     }
   }
+  
+  case class Optional(tg:Tgp*){
+    lazy val block={
+      val e=new ElementTriplesBlock
+      tg.map(t=>t.tblock.getPattern.getList).flatten.foreach(e.addTriple(_))
+      new ElementOptional(e)
+    }
+  }
   /*
   class TriplePattern(val e:ElementTriplesBlock){
     def add(tg:TripleGraph)=tg.list.foreach(e.addTriple(_))
   } */ 
-  case class SparqlQuery(q:Query){
+  case class QueryPlus(query:Query){
     //def add(tg:TripleGraph)=Unit
-    def addResultVars(vars:String*)=vars.foreach(q.addResultVar(_))
+    def addResultVars(vars:String*)=vars.foreach(query.addResultVar(_))
+    def addResultVars(vars:Array[String])=vars.foreach(query.addResultVar(_))
   }
+  abstract class SparqlQuery(val body:Element)
+  
+  case class SelectSparqlQuery(override val body:Element,vars:Array[String]) extends SparqlQuery(body){
+    private val query=new Query
+    query.setQuerySelectType
+    private val sp=new QueryPlus(query)      
+    sp.addResultVars(vars)
+    query.setQueryPattern(body)
+    
+    def serialize=query.serialize
+  }
+  /*
+  object SelectSparqlQuery {
+    def apply(body:Element,vars:Array[String])={
+      val query=new Query
+      query.setQuerySelectType
+      val sp=new SparqlQuery(query)      
+      sp.addResultVars(vars)
+      query.setQueryPattern(body)
+      query
+    }
+  }*/
+  
   case class ExtendedSolution(s:QuerySolution){
   def lit(atr:String)=s.getLiteral(atr)
   def res(atr:String)=s.getResource(atr)

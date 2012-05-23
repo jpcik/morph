@@ -14,6 +14,7 @@ abstract class Vocabulary {
 object RDF extends Vocabulary{
   override val prefix="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
   val typeProp=property("type")
+  val a=typeProp
 }
 
 object RDFFormat extends Enumeration("TURTLE","N3"){

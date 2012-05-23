@@ -24,30 +24,33 @@ import com.hp.hpl.jena.datatypes.xsd.XSDDatatype._
 import es.upm.fi.oeg.siq.sparql.XSDtypes
 import com.hp.hpl.jena.graph.Node
 import com.hp.hpl.jena.rdf.model.Resource
+import com.hp.hpl.jena.shared.JenaException
 
 class R2rmlReader() extends Sparql with XSDtypes with Logging {  
   val model=ModelFactory.createDefaultModel
   val triplesMaps=new collection.mutable.HashMap[String,TriplesMap]
   
   lazy val tMaps=readTriplesMap(null)
-
-  def read(mappingUrl:URI){ //throws InvalidR2RDocumentException, InvalidR2RLocationException
+  def filterBySubject(uri:String)=tMaps.filter(t=>t.subjectMap.rdfsClass.getURI.equals(uri))
+  def filterByPredicate(uri:String)=tMaps.map(t=>
+    t.poMaps.filter(po=>po.predicateMap.constant.asResource.getURI.equals(uri)).map((_,t))).flatten
+  
+  def read(mappingUrl:URI){ 
 	try {
-	  val in = new FileInputStream(mappingUrl.toString())
-	  this.read(in);
-	  in.close();
+	  val in = new FileInputStream(mappingUrl.toString)
+	  this.read(in)
+	  in.close
 	} catch {
 	  case e:FileNotFoundException => try{
-	    val iss = getClass.getClassLoader().getResourceAsStream(mappingUrl.toString());
-		this.read(iss);
+	    val iss = getClass.getClassLoader.getResourceAsStream(mappingUrl.toString)
+		this.read(iss)
 		} catch {
-		  case ex:IOException=>
-			throw new IllegalArgumentException//InvalidR2rmlLocationException(ex.getMessage(), ex)
-			}				
-	  }
+		  case ex:IOException=>throw new IllegalArgumentException("Cannot read r2rml "+mappingUrl)
+		}				
+	}
   }
 	
-  def read(in:InputStream){ //throws InvalidR2RDocumentException
+  def read(in:InputStream){ 
 	val arp:RDFReader= model.getReader(RDFFormat.TTL)
 	try{
 	  arp.read(model,in,"")
@@ -55,40 +58,56 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
 	  case e:TurtleParseException=>
 		val msg = "Error parsing the r2r document: "+e.getMessage
 		logger.error(msg)
-		throw new IllegalArgumentException//InvalidR2rmlDocumentException(msg,e)
+		throw new IllegalArgumentException(msg)
 	  case e:RiotException =>
-		throw new IllegalArgumentException//InvalidR2rmlDocumentException("Error reading  r2r document: "+e.getMessage,e)
+		throw new IllegalArgumentException("Error parsing r2rml ",e)
+	  case e:JenaException => throw new R2rmlModelException("Invalid R2RML ",e)
 	}
 	model.write(System.out,RDFFormat.TTL)
-	//readTriplesMap(null);
+	
   }
 
-  private def readTriplesMap(triplesMapUri:Resource):Seq[TriplesMap]=	{
-      if (triplesMapUri!=null && triplesMaps.contains(triplesMapUri.getURI))
-        List(triplesMaps(triplesMapUri.getURI))
-        else{
+  private def readTriplesMap(triplesMapUri:Resource):Seq[TriplesMap]={
+    if (triplesMapUri!=null && triplesMaps.contains(triplesMapUri.getURI))
+      List(triplesMaps(triplesMapUri.getURI))
+    else{
+      val tm=loadTriplesMap(triplesMapUri)
+      tm
+    }
+  }
+  
+  private def loadTriplesMap(triplesMapUri:Resource):Seq[TriplesMap]={
 	val tMapVar:Node = if (triplesMapUri!=null) triplesMapUri
-	  else "tMap";
-    val query=new Query
-    query.setQuerySelectType
-    query.addResultVars("tMap","query","table","sClass","sCol","sTerm","sConst",
-				"sInv","sTemp")
+	  else "tMap"
+
 	val group=
-	Group(List(Tgp(tMapVar,(RDF.typeProp,R2RML.TriplesMap),
+	Group(Tgp(tMapVar,(RDF.typeProp,R2RML.TriplesMap),
                             (R2RML.logicalTable,"lt"),
-                            (R2RML.subjectMap,"sMap"))),                            
+                            (R2RML.subjectMap,"sMap")),                            
         OpTgp("lt",(R2RML.sqlQuery,"query")),
+        OpTgp("lt",(R2RML.sqlVersion,"version")),
         OpTgp("lt",(R2RML.tableName,"table")),
+        //OpTgp("sMap",(R2RML.graphMap,"gMap")),
         OpTgp("sMap",(R2RML.classProperty,"sClass")),
         OpTgp("sMap",(R2RML.column,"sCol")),
         OpTgp("sMap",(R2RML.template,"sTemp")),
         OpTgp("sMap",(R2RML.termType,"sTerm")),
         OpTgp("sMap",(R2RML.inverseExpression,"sInv")),
-        OpTgp("sMap",(R2RML.constant,"sConst"))).groupelement
-   
-    query.setQueryPattern(group)                                  
-                                  	
-    logger.debug("Query tripleMap: "+query.serialize);
+        OpTgp("sMap",(R2RML.constant,"sConst")),
+        OpTgp("sMap",(R2RML.graph,"directGraph")),
+        Optional(Tgp("gMap",(R2RML.termType,"gTerm")),
+                 Tgp("sMap",(R2RML.graphMap,"gMap"))).block,
+        Optional(Tgp("gMap",(R2RML.constant,"gConst")),
+                 Tgp("sMap",(R2RML.graphMap,"gMap"))).block,
+        Optional(Tgp("gMap",(R2RML.template,"gTemp")),
+                 Tgp("sMap",(R2RML.graphMap,"gMap"))).block
+            ).groupelement
+	    
+	    
+	val query=SelectSparqlQuery(group,Array("tMap","query","version","table","sClass","sCol","sTerm","sConst",
+				"sInv","sTemp","gConst","directGraph","gMap","gTemp","gTerm"))
+	
+    logger.debug("Query tripleMap: "+query.serialize)
     val qexec = QueryExecutionFactory.create(query.serialize, model)
     val rs={
       val results = qexec.execSelect
@@ -115,74 +134,97 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
 		val constant = soln.res("sConst");
 		val table = soln.lit("table");
 		val template = soln.lit("sTemp");
-		      		
-		val sMap=new SubjectMap(constant,column,template,TermType(termType),sClass,null)
+        if (soln.get("gTerm")!=null && !soln.res("gTerm").getURI.equals(R2RML.IRI))
+          throw new R2rmlModelException("Non IRI terms not allowed for graphMap")
+		if ((soln.get("gConst")==null && soln.get("gTemp")==null) && soln.get("gMap")!=null)
+		  throw new R2rmlModelException("graphMap without constant graph or template IRI not allowed")
+		val constantGraph=if (soln.get("gConst")!=null) {
+		  val g=soln.res("gConst")
+		  if (g.getURI.equals(R2RML.defaultGraph.getURI)) null
+		  else g
+		} 	
+		else {
+		  val g=soln.res("directGraph")
+		  if (g!=null && g.equals(R2RML.defaultGraph)) null
+		  else g
+		}
+		val gMap=if (constantGraph!=null) new GraphMap(constantGraph) 
+		  else if (soln.lit("gTemp")!=null){
+		    new GraphMap(soln.lit("gTemp").getString)
+		  } 
+		  else null
+		val sMap=new SubjectMap(constant,column,template,TermType(termType),sClass,gMap)
 		val pos=readPOMaps(uri)
-		val tm=new TriplesMap(uri.getURI,LogicalTable(table,sqlQuery,null),sMap,pos.toArray)
+		val tm=new TriplesMap(uri.getURI,LogicalTable(table,sqlQuery,soln.res("version")),sMap,pos.toArray)
 		triplesMaps.put(tm.uri,tm)
 		tm
 	  }
     }
-		//subjectMap.setTriplesMap(tMap);
-		//tMap.setSubjectMap(subjectMap );
-		      
-		      /*
-		      readIndexes(tMap);
-		      readGraphs(subjectMap);
-		      readGraphColumns(subjectMap);
-		      readPropertyObjectMap(tMap);
-		      readRefPropertyObjectMap(tMap);
-		      */
-		      //triplesMap.put(uri, tMap);
 	
-		//this.triplesMap=maps;
 	rs.toList	
-        }
+        
   }
   
   
   private def readPOMaps(tMapUri:Node)={
     val query=new Query
     query.setQuerySelectType
-    query.addResultVars("predicate","pCol","oConst","oCol","oTemp","odType","gCol","graph","parentTMap","directPredicate")
-	val group=
-	Group(List(Tgp(tMapUri,(RDF.typeProp,R2RML.TriplesMap),
-                           (R2RML.predicateObjectMap,"poMap")),
-               Tgp("poMap",//(R2RML.predicateMap,"pMap"),                   
-                           (R2RML.objectMap,"oMap"))),
-          OpTgp("poMap",(R2RML.predicate,"directPredicate")),
+    query.addResultVars("predicate","pCol","oConst",
+        "oCol","oTemp","odType","gCol","graph","parentTMap","directPredicate","directObject")
+	val group=	
+	Group(Tgp(tMapUri,(RDF.typeProp,R2RML.TriplesMap),
+                      (R2RML.predicateObjectMap,"poMap")),
           OpTgp("poMap",(R2RML.graph,"graph")),
-          OpTgp("pMap",(R2RML.constant,"predicate")),
-          OpTgp("pMap",(R2RML.column,"pCol")),
-          OpTgp("oMap",(R2RML.column,"oCol")),
-          OpTgp("oMap",(R2RML.constant,"oConst")),
-          OpTgp("oMap",(R2RML.template,"oTemp")),
+          Optional(Tgp("pMap",(R2RML.constant,"predicate")),
+                   Tgp("poMap",(R2RML.predicateMap,"pMap"))).block,
+          Optional(Tgp("pMap",(R2RML.column,"pCol")),
+                   Tgp("poMap",(R2RML.predicateMap,"pMap"))).block,
+          Optional(Tgp("oMap",(R2RML.template,"oTemp")),
+                   Tgp("poMap",(R2RML.objectMap,"oMap"))).block,
+          Optional(Tgp("oMap",(R2RML.constant,"oConst")),
+                   Tgp("poMap",(R2RML.objectMap,"oMap"))).block,
+          Optional(Tgp("oMap",(R2RML.column,"oCol")),
+                   Tgp("poMap",(R2RML.objectMap,"oMap"))).block,
           OpTgp("oMap",(R2RML.termType,"oTerm")),
           OpTgp("oMap",(R2RML.datatype,"odType")),
-          OpTgp("oMap",(R2RML.parentTriplesMap,"parentTMap"))
-          ).groupelement
+          OpTgp("oMap",(R2RML.parentTriplesMap,"parentTMap")),
+
+		  Group(Union(
+		    Group(Tgp("poMap",(R2RML.predicateMap,"pMap")),
+		                   Tgp("poMap",(R2RML.objectMap,"oMap"))).groupelement,
+		    Group(Tgp("poMap",(R2RML.predicate,"directPredicate")),
+		                   Tgp("poMap",(R2RML.objectMap,"oMap"))).groupelement,
+		    Group(Tgp("poMap",(R2RML.predicate,"directPredicate")),
+		                   Tgp("poMap",(R2RML.objectProp,"directObject"))).groupelement,
+		    Group(Tgp("poMap",(R2RML.predicateMap,"pMap")),
+		                   Tgp("poMap",(R2RML.objectProp,"directObject"))).groupelement).unionElement).groupelement		          		          
+               ).groupelement
+
+          
    
     query.setQueryPattern(group)                                                                   	
     logger.debug("Query po: "+query.serialize);
     val qexec = QueryExecutionFactory.create(query.serialize, model)
     val results = qexec.execSelect
     results.map{soln=>      
+      println( soln.varNames.map(v=>v+"="+soln.get(v)).mkString("--"))
       val predicate=if (soln.res("predicate")!=null) soln.res("predicate")
         else soln.res("directPredicate")
       val p=PredicateMap(predicate,soln.lit("pCol"),null)
       if (soln.res("parentTMap")!=null){
-        if (!triplesMaps.contains(soln.res("parentTMap").getURI))
-          readTriplesMap(soln.res("parentTMap"))
-        val ro=RefObjectMap(triplesMaps(soln.res("parentTMap").getURI),null)  
+        //if (!triplesMaps.contains(soln.res("parentTMap").getURI))
+          //readTriplesMap(soln.res("parentTMap"))
+        val ro=RefObjectMap(soln.res("parentTMap").getURI,null)  
         new PredicateObjectMap(p,ro)
       }
       else{
-        val o=ObjectMap(soln.res("oConst"),soln.lit("oCol"),soln.lit("oTemp"),TermType(soln.res("oTerm")),
+        val constantObject=if (soln.get("oConst")!=null) soln.get("oConst") else soln.res("directObject")
+        val o=ObjectMap(constantObject,soln.lit("oCol"),soln.lit("oTemp"),TermType(soln.res("oTerm")),
           null,toDatatype(soln.res("odType")),null)
         new PredicateObjectMap(p,o)
       }
       
-    }
+    }.toList
   }
   
    

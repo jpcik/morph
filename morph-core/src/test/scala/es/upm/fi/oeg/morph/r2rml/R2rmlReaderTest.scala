@@ -12,7 +12,6 @@ class R2rmlReaderTest extends JUnitSuite with ShouldMatchersForJUnit with Checke
   @Test def testRead(){
     val reader=new R2rmlReader
     reader.read(new URI("mappings/bikes.ttl"))
-    reader.tMaps.foreach(t=>println(t.uri +" "+t.poMaps.size))
-    
+    reader.tMaps.foreach(t=>println(t.uri +" "+t.poMaps.size))       
   }
 }
