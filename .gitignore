@@ -1,1 +1,10 @@
-target
+*.class
+*.log
+target/
+.settings/
+.classpath
+bin/
+output/
+project/boot/
+test-suite/
+.cache
