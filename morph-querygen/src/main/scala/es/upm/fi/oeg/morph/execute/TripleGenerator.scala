@@ -13,6 +13,9 @@ import com.hp.hpl.jena.rdf.model.Resource
 import com.hp.hpl.jena.rdf.model.Statement
 import com.hp.hpl.jena.graph.Triple
 import java.net.URLEncoder
+import es.upm.fi.oeg.morph.r2rml.GraphMap
+import com.hp.hpl.jena.rdf.model.ModelFactory
+import es.upm.fi.oeg.siq.tools.XsdTypes
 
 case class TripleGenerator(d:DataSource,tm:TriplesMap){
   def genModel=d.getDefaultModel
@@ -27,18 +30,24 @@ case class TripleGenerator(d:DataSource,tm:TriplesMap){
    url.replace(" ","%20") 
   } 
   
-  def genSubject(rs:ResultSet)={
+  def genSubject(rs:ResultSet):Resource=genSubject(rs,"SUBJECT")   
+  
+  def genSubject(rs:ResultSet,col:String)={
     val subj=tm.subjectMap
-	val col="SUBJECT"//extractColumn(subj)
     println("metacolumn "+rs.getMetaData.getColumnName(1))
-    val id = urlize( rs.getString(col))
-	val ttype=subj.termType
-	if (ttype.isBlank)
-	  genModel.createResource(new AnonId(id))
-	else if (subj.template!=null)
-	  genModel.createResource(id)//generateTemplateVal(subj.template,id))
-	else
-	  genModel.createResource(id)
+    println("id column "+col)
+    val id=rs.getString(col)
+    if (id==null) null
+    else {
+	  val idurl = urlize(id)
+      val ttype=subj.termType
+	  if (ttype.isBlank)
+		genModel.createResource(new AnonId(idurl))
+	  else if (subj.template!=null)
+		genModel.createResource(idurl)//generateTemplateVal(subj.template,id))
+	  else
+		genModel.createResource(idurl)
+    }
   }
 
   def genRdfType()={
@@ -50,6 +59,25 @@ case class TripleGenerator(d:DataSource,tm:TriplesMap){
       urlize(rs.getString("SUBJECTGRAPH"))
      else null
   }
+  
+  def graph(res:ResultSet,gmap:GraphMap)={
+    if (gmap==null) d.getDefaultModel
+    else if (gmap.constant!=null) 
+      if (d.getNamedModel(gmap.constant.asResource.getURI)!=null)
+        d.getNamedModel(gmap.constant.asResource.getURI)
+      else {
+        d.addNamedModel(gmap.constant.asResource.getURI,ModelFactory.createDefaultModel)
+        d.getNamedModel(gmap.constant.asResource.getURI)
+      }
+    else if (gmap.template!=null){
+      val gname=genGraph(res)
+      if (d.getNamedModel(gname)==null)
+        d.addNamedModel(gname,ModelFactory.createDefaultModel)
+      d.getNamedModel(gname)                     
+    }
+    else null    
+  }
+
 }
 
 case class POGenerator(ds:DataSource,poMap:PredicateObjectMap,parentTMap:TriplesMap){
@@ -58,10 +86,13 @@ case class POGenerator(ds:DataSource,poMap:PredicateObjectMap,parentTMap:Triples
       poMap.predicateMap.constant.asResource.getURI)
   }
   
-  			
+  def genRefObject(rs:ResultSet)={
+    poMap.refObjectMap.joinCondition.child
+  }
+  
   def generate(subj:Resource,rs:ResultSet)={
     if (poMap.refObjectMap!=null){
-	  val obj=new TripleGenerator(ds,parentTMap).genSubject(rs)
+	  val obj=new TripleGenerator(ds,parentTMap).genSubject(rs,poMap.id)
 	  (obj,null)
 	}
     else{
@@ -77,11 +108,5 @@ case class POGenerator(ds:DataSource,poMap:PredicateObjectMap,parentTMap:Triples
     }
   }
   
-  def sqlType2XsdType(sqlType:Int)=
-    if (sqlType==Types.NVARCHAR)  XSDDatatype.XSDstring
-	else if (sqlType==Types.INTEGER) XSDDatatype.XSDinteger
-	else if (sqlType==Types.DOUBLE) XSDDatatype.XSDdouble
-	else null
-  
+  def sqlType2XsdType(sqlType:Int)=XsdTypes.sqlType2XsdType(sqlType)
 }
-
