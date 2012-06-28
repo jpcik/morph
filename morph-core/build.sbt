@@ -15,8 +15,8 @@ libraryDependencies ++= Seq(
   "com.weiglewilczek.slf4s" % "slf4s_2.9.1" % "1.0.7",
   "org.slf4j" % "slf4j-log4j12" % "1.6.4",
   "org.slf4j" % "slf4j-api" % "1.6.4",
-  "org.scalatest" % "scalatest_2.9.2" % "1.7.2" % "test",
-  "org.scalacheck" % "scalacheck_2.9.2" % "1.9" % "test"
+  "org.scalatest" % "scalatest_2.9.1" % "1.7.2" % "test",
+  "org.scalacheck" % "scalacheck_2.9.1" % "1.9" % "test"
 )
 
 scalacOptions += "-deprecation"

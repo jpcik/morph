@@ -36,12 +36,13 @@ object R2RML extends Vocabulary{
   val datatype = property("datatype")
   val template = property("template")
   val termType = property("termType")
-    
   val predicate = property("predicate")
   val objectProp = property("object")
 
   val inverseExpression = property("inverseExpression") 
   val joinCondition = property("joinCondition")
+  val parent=property("parent")
+  val child=property("child")
   val parentTriplesMap = property("parentTriplesMap")
   val defaultGraph=resource("defaultGraph")
   

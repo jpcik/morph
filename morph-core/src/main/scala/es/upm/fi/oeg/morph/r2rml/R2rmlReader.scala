@@ -33,8 +33,10 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
   lazy val tMaps=readTriplesMap(null)
   def filterBySubject(uri:String)=tMaps.filter(t=>t.subjectMap.rdfsClass.getURI.equals(uri))
   def filterByPredicate(uri:String)=tMaps.map(t=>
-    t.poMaps.filter(po=>po.predicateMap.constant.asResource.getURI.equals(uri)).map((_,t))).flatten
-  
+    t.poMaps.filter(_.predicateIs(uri))map((_,t))).flatten
+  def allPredicates=tMaps.map(t=>t.poMaps.map((_,t))).flatten
+    
+    
   def read(mappingUrl:URI){ 
 	try {
 	  val in = new FileInputStream(mappingUrl.toString)
@@ -169,8 +171,8 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
   private def readPOMaps(tMapUri:Node)={
     val query=new Query
     query.setQuerySelectType
-    query.addResultVars("predicate","pCol","oConst",
-        "oCol","oTemp","odType","gCol","graph","parentTMap","directPredicate","directObject")
+    query.addResultVars("predicate","pCol","oConst","oCol","oTemp","odType",
+        "gCol","graph","parentTMap","directPredicate","directObject","joinParent","joinChild")
 	val group=	
 	Group(Tgp(tMapUri,(RDF.typeProp,R2RML.TriplesMap),
                       (R2RML.predicateObjectMap,"poMap")),
@@ -185,9 +187,14 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
                    Tgp("poMap",(R2RML.objectMap,"oMap"))).block,
           Optional(Tgp("oMap",(R2RML.column,"oCol")),
                    Tgp("poMap",(R2RML.objectMap,"oMap"))).block,
+          Optional(Tgp("poMap",(R2RML.objectMap,"oMap")),
+                   Tgp("oMap",(R2RML.joinCondition,"join")),
+                   Tgp("join",(R2RML.parent,"joinParent")),
+                   Tgp("join",(R2RML.child,"joinChild"))).block,
           OpTgp("oMap",(R2RML.termType,"oTerm")),
           OpTgp("oMap",(R2RML.datatype,"odType")),
-          OpTgp("oMap",(R2RML.parentTriplesMap,"parentTMap")),
+          Optional(Tgp("poMap",(R2RML.objectMap,"oMap")),
+                   Tgp("oMap",(R2RML.parentTriplesMap,"parentTMap"))).block,
 
 		  Group(Union(
 		    Group(Tgp("poMap",(R2RML.predicateMap,"pMap")),
@@ -211,17 +218,21 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
       val predicate=if (soln.res("predicate")!=null) soln.res("predicate")
         else soln.res("directPredicate")
       val p=PredicateMap(predicate,soln.lit("pCol"),null)
+      val gmap=if (soln.res("graph")!=null) new GraphMap(soln.res("graph"))
+      else null
+        
       if (soln.res("parentTMap")!=null){
-        //if (!triplesMaps.contains(soln.res("parentTMap").getURI))
-          //readTriplesMap(soln.res("parentTMap"))
-        val ro=RefObjectMap(soln.res("parentTMap").getURI,null)  
-        new PredicateObjectMap(p,ro)
+        val join=if (soln.get("joinParent")!=null) 
+          JoinCondition(soln.lit("joinParent"),soln.lit("joinChild"))
+          else null
+        val ro=RefObjectMap(soln.res("parentTMap").getURI,join)  
+        new PredicateObjectMap(p,ro,gmap)
       }
       else{
         val constantObject=if (soln.get("oConst")!=null) soln.get("oConst") else soln.res("directObject")
         val o=ObjectMap(constantObject,soln.lit("oCol"),soln.lit("oTemp"),TermType(soln.res("oTerm")),
           null,toDatatype(soln.res("odType")),null)
-        new PredicateObjectMap(p,o)
+        new PredicateObjectMap(p,o,gmap)
       }
       
     }.toList

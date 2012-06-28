@@ -4,6 +4,7 @@ import com.hp.hpl.jena.rdf.model.Resource
 import com.hp.hpl.jena.rdf.model.RDFNode
 import com.hp.hpl.jena.datatypes.RDFDatatype
 import es.upm.fi.oeg.morph.r2rml.R2rmlUtils._
+import java.net.URI
 
 case class TriplesMap(uri:String,logicalTable:LogicalTable,
     subjectMap:SubjectMap,poMaps:Array[PredicateObjectMap])
@@ -44,23 +45,26 @@ case class ObjectMap(const:RDFNode,col:String,temp:String,term:TermType,
     lang:String,dtype:RDFDatatype,inv:String)
   extends TermMap(const,col,temp,term)
 
-case class RefObjectMap(parentTriplesMap:String,joinCondition:String) 
+case class RefObjectMap(parentTriplesMap:String,joinCondition:JoinCondition) 
   //extends ObjectMap(null,null,null,null,null,null,null)
 case class PredicateMap(const:RDFNode,col:String,temp:String)
   extends TermMap(const,col,temp,IRIType){
-  if (allnull(const,col,temp)) throw new R2rmlModelException("PredicateObjectMap requires constant, column or template")
+  if (allnull(const,col,temp)) throw new R2rmlModelException("PredicateMap requires constant, column or template")
   def this(constant:RDFNode)=this(constant,null,null)
 
 }
 
+case class JoinCondition(parent:String,child:String)
+
 case class PredicateObjectMap(predicateMap:PredicateMap,objectMap:ObjectMap,
     refObjectMap:RefObjectMap,graphMap:GraphMap){
   private val objId= if (objectMap!=null) extractColumn(objectMap)
-    else refObjectMap.parentTriplesMap
+    else new URI(refObjectMap.parentTriplesMap).getFragment
   val id=predicateMap.const.asResource.getLocalName+ (if (objId!=null) objId else "")
   
-  def this(predicateMap:PredicateMap,objectMap:ObjectMap)=this(predicateMap,objectMap,null,null)
-  def this(predicateMap:PredicateMap,refObjectMap:RefObjectMap)=this(predicateMap,null,refObjectMap,null)
+  def this(predicateMap:PredicateMap,objectMap:ObjectMap,graphMap:GraphMap)=this(predicateMap,objectMap,null,graphMap)
+  def this(predicateMap:PredicateMap,refObjectMap:RefObjectMap,graphMap:GraphMap)=this(predicateMap,null,refObjectMap,graphMap)
+  def predicateIs(uri:String)=predicateMap.constant!=null && predicateMap.constant.asResource.getURI.equals(uri)
 }
 
 case class LogicalTable(tableName:String,sqlQuery:String,sqlVersion:RDFNode){
