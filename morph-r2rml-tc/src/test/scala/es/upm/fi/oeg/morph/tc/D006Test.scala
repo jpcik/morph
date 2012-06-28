@@ -11,6 +11,6 @@ class D006Test extends R2RMLTest("D006-1table1primarykey1column1row") {
 	val tc=suit.getTc("R2RMLTC0006a")	
 	val ds=suit.testTc(tc.get)
 	val dg=ds.asDatasetGraph
-	dg.getGraph(dg.listGraphNodes.toList.first).size should be (1)
+	dg.getGraph(dg.listGraphNodes.toList.head).size should be (1)
   }
 }

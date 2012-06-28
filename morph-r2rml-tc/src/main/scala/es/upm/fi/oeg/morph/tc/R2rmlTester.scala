@@ -40,46 +40,43 @@ class SuiteTester(testPath:String,val name:String){
  
   
   def testTc(tc:TestCase)={
-    //val r2r=new R2RProcessor
-    //props.setProperty(R2RProcessor.R2R_MAPPING_URL,testPath+"/"+name+"/"+ tc.mappingDoc);
-    //r2r.configure(props);
-   val reader=R2rmlReader(testPath+"/"+name+"/"+ tc.mappingDoc)
+    val reader=R2rmlReader(testPath+"/"+name+"/"+ tc.mappingDoc)
     val relat=new JDBCRelationalModel(props)
     
     val ds=new RdfGenerator(reader,relat).generate
     RiotWriter.writeNQuads(System.out,ds.asDatasetGraph)
-    //ds.getDefaultModel.write(System.out,RDFFormat.TTL)
-    //val output=ModelFactory.createDefaultModel()
     println("output: "+tc.output)
-    //val o:LangRIOT=null
+    
     if (tc.output!=null) {
-      val output=RiotLoader.load(testPath+"/"+name+"/"+tc.output, Lang.NQUADS);
+      val output=RiotLoader.load(testPath+"/"+name+"/"+tc.output, Lang.NQUADS)
       RiotWriter.writeNQuads(System.out,output)
       //output.getReader("N-Quads").read(output,new FileInputStream(testPath+"/"+name+"/"+tc.output),"")
-      //output.write(System.out,RDFFormat.N3)
-      
-         println("comparing "+compare(output,ds.asDatasetGraph))
+      //output.write(System.out,RDFFormat.N3)      
+      val compareEquals=compare(output,ds.asDatasetGraph)
+      println("comparing "+compareEquals)
+      if (!compareEquals)
+        throw new Exception("Test results do not match expected triple dataset.")
     }
-
     ds
   }
   
-   def compare(d1:DatasetGraph,d2:DatasetGraph):Boolean={
+  def compare(d1:DatasetGraph,d2:DatasetGraph):Boolean={
     val c1=d1.getDefaultGraph().isIsomorphicWith(d2.getDefaultGraph)
     if (d1.listGraphNodes.isEmpty && d2.listGraphNodes.isEmpty)
-    { c1}
-    else
-    d1.listGraphNodes.map{g=>
-      val g2=d2.getGraph(g)
-      if (g2!=null)
-        compare(d1.getGraph(g),g2)
-      else false
-    }.reduceLeft(_&&_) && c1    
+      c1
+    else{
+      val comparisons=d1.listGraphNodes.map{g=>
+        val g2=d2.getGraph(g)
+        if (g2!=null)
+          compare(d1.getGraph(g),g2)
+        else false
+      }      
+      comparisons.reduceLeft(_&&_) && c1
+    }
   }
   
   def compare(g1:Graph,g2:Graph)={
     g1.isIsomorphicWith(g2)
-    //true
   }
 
   def testAll{

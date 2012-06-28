@@ -22,7 +22,7 @@ class D007Test extends R2RMLTest("D007-1table1primarykey2columns1row") {
 	val ds=suit.testTc(tc.get)
 	val dg=ds.asDatasetGraph
 	dg.getDefaultGraph.size should be (0)
-	dg.listGraphNodes.toList.first.getURI.toString should be ("http://example.com/PersonGraph")
+	dg.listGraphNodes.toList.head.getURI.toString should be ("http://example.com/PersonGraph")
   }
   @Test def testTC0007c{
 	val tc=suit.getTc("R2RMLTC0007c")	
@@ -41,31 +41,23 @@ class D007Test extends R2RMLTest("D007-1table1primarykey2columns1row") {
 	val ds=suit.testTc(tc.get)
 	val dg=ds.asDatasetGraph
 	dg.getDefaultGraph.size should be (0)
-	dg.listGraphNodes.toList.first.getURI.toString should be ("http://example.com/PersonGraph")
+	dg.listGraphNodes.toList.head.getURI.toString should be ("http://example.com/PersonGraph")
   }
   @Test def testTC0007f{
 	val tc=suit.getTc("R2RMLTC0007f")	
 	val ds=suit.testTc(tc.get)
 	val dg=ds.asDatasetGraph
 	dg.getDefaultGraph.size should be (0)
-	dg.listGraphNodes.toList.first.getURI.toString should be ("http://example.com/PersonGraph")
+	dg.listGraphNodes.toList.head.getURI.toString should be ("http://example.com/PersonGraph")
   }
   @Test def testTC0007g{
 	val tc=suit.getTc("R2RMLTC0007g")	
 	val ds=suit.testTc(tc.get)
 	val dg=ds.asDatasetGraph
-	dg.getDefaultGraph.size should be (0)
+	dg.getDefaultGraph.size should be (2)
   }
   @Test def testTC0007h{
 	val tc=suit.getTc("R2RMLTC0007h")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
-	dg.getDefaultGraph.size should be (2)
-  }
-  @Test def testTC0007i{
-	val tc=suit.getTc("R2RMLTC0007i")	
-	println(intercept[R2rmlModelException]{
-	  val ds=suit.testTc(tc.get)
-	})
+	println(intercept[R2rmlModelException]{val ds=suit.testTc(tc.get)})
   }
 }

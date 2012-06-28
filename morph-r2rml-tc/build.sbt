@@ -11,7 +11,9 @@ crossPaths := false
 libraryDependencies ++= Seq(
   "es.upm.fi.oeg.morph" % "morph-core" % "1.0.0",
   "es.upm.fi.oeg.morph" % "morph-querygen" % "1.0.0",
-  "org.hsqldb" % "hsqldb" % "2.2.8" 
+  "org.hsqldb" % "hsqldb" % "2.2.8",
+    "org.scalatest" % "scalatest_2.9.1" % "1.7.2" % "test",
+  "org.scalacheck" % "scalacheck_2.9.1" % "1.9" % "test"
 )
 
 scalacOptions += "-deprecation"
