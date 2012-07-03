@@ -1,5 +1,4 @@
 package es.upm.fi.oeg.morph.r2rml
-//import es.upm.fi.oeg.morph.r2rml.SubjectMap
 
 object R2rmlUtils {
   
@@ -23,9 +22,8 @@ object R2rmlUtils {
     val col=  if (sm.column!=null) sm.column
               else if (sm.template!=null) extractTemplateVal(sm.template)
               else null
-    //col
-    if (col!=null)
-      col.replace("\"","")
+
+    if (col!=null) col
     else null
   }
     

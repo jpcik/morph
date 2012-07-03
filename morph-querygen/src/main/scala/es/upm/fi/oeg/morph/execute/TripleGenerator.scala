@@ -16,8 +16,10 @@ import java.net.URLEncoder
 import es.upm.fi.oeg.morph.r2rml.GraphMap
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import es.upm.fi.oeg.siq.tools.XsdTypes
+import es.upm.fi.oeg.siq.tools.URLTools
+import es.upm.fi.oeg.morph.r2rml.IRIType
 
-case class TripleGenerator(d:DataSource,tm:TriplesMap){
+case class TripleGenerator(d:DataSource,tm:TriplesMap, baseUri:String){
   def genModel=d.getDefaultModel
    
   def slugify(str: String): String = {
@@ -26,8 +28,7 @@ case class TripleGenerator(d:DataSource,tm:TriplesMap){
   }
   
   def urlize(url:String)= {
-   //URLEncoder.encode(url.toString(),"UTF-8");
-   url.replace(" ","%20") 
+    URLTools.encode(url)
   } 
   
   def genSubject(rs:ResultSet):Resource=genSubject(rs,"SUBJECT")   
@@ -39,14 +40,21 @@ case class TripleGenerator(d:DataSource,tm:TriplesMap){
     val id=rs.getString(col)
     if (id==null) null
     else {
-	  val idurl = urlize(id)
       val ttype=subj.termType
+	  val idurl = //if (subj.template!=null && subj.termType==IRIType) URLTools.encodeAll(id) 
+	    urlize(id)
+	  val prepend=
+	    if (subj.template!=null && !idurl.startsWith("http"))
+	      baseUri+URLTools.encodeAll(id)
+	    else  if (idurl.startsWith("http")) idurl else baseUri+idurl
 	  if (ttype.isBlank)
 		genModel.createResource(new AnonId(idurl))
 	  else if (subj.template!=null)
-		genModel.createResource(idurl)//generateTemplateVal(subj.template,id))
+		genModel.createResource(prepend)//generateTemplateVal(subj.template,id))
+	  //else if (!idurl.startsWith("http"))
+	    //genModel.createResource(baseUri+idurl)
 	  else
-		genModel.createResource(idurl)
+		genModel.createResource(prepend)
     }
   }
 
@@ -80,7 +88,7 @@ case class TripleGenerator(d:DataSource,tm:TriplesMap){
 
 }
 
-case class POGenerator(ds:DataSource,poMap:PredicateObjectMap,parentTMap:TriplesMap){
+case class POGenerator(ds:DataSource,poMap:PredicateObjectMap,parentTMap:TriplesMap,baseUri:String){
   def genPredicate={
     ResourceFactory.createProperty(
       poMap.predicateMap.constant.asResource.getURI)
@@ -92,14 +100,14 @@ case class POGenerator(ds:DataSource,poMap:PredicateObjectMap,parentTMap:Triples
   
   def generate(subj:Resource,rs:ResultSet)={
     if (poMap.refObjectMap!=null){
-	  val obj=new TripleGenerator(ds,parentTMap).genSubject(rs,poMap.id)
+	  val obj=new TripleGenerator(ds,parentTMap,baseUri).genSubject(rs,poMap.id)
 	  (obj,null)
 	}
     else{
 	  val typeInResult=rs.getMetaData.getColumnType(rs.findColumn(poMap.id))
 	  val datatype = if (poMap.objectMap.dtype!=null) 
 	      poMap.objectMap.dtype
-		else sqlType2XsdType(typeInResult)	
+		else XsdTypes.sqlType2XsdType(typeInResult)	
 		
 	  if (poMap.objectMap.constant==null)
 		(rs.getString(poMap.id),datatype)		
@@ -107,6 +115,4 @@ case class POGenerator(ds:DataSource,poMap:PredicateObjectMap,parentTMap:Triples
 		(poMap.objectMap.constant,null)
     }
   }
-  
-  def sqlType2XsdType(sqlType:Int)=XsdTypes.sqlType2XsdType(sqlType)
 }

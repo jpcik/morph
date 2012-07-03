@@ -7,17 +7,17 @@ class D011Test  extends R2RMLTest("D011-M2MRelations") {
 
   @Before def initialize() {}
    
-  @Test@Ignore def testTC011a{
-	val tc=suit.getTc("R2RMLTC011a")	
+  @Test def testTC011a{
+	val tc=suit.getTc("R2RMLTC0011a")	
 	val ds=suit.testTc(tc.get)
 	val dg=ds.asDatasetGraph
-	dg.getDefaultGraph.size should be (4)
+	dg.getDefaultGraph.size should be (19)
   }
-  @Test@Ignore def testTC011b{
-	val tc=suit.getTc("R2RMLTC011b")	
+  @Test def testTC011b{
+	val tc=suit.getTc("R2RMLTC0011b")	
 	val ds=suit.testTc(tc.get)
 	val dg=ds.asDatasetGraph
-	dg.getDefaultGraph.size should be (4)
+	dg.getDefaultGraph.size should be (16)
   }
 
 }

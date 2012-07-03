@@ -32,31 +32,21 @@ class Manifest(val name:String,val database:Database) {
 
 
 object Manifest extends Sparql{
-  val prefixes="prefix test: <http://www.w3.org/2006/03/test-description#> "
+  //val prefixes="prefix test: <http://www.w3.org/2006/03/test-description#> "
     
-  val queryt=new Query  
-  queryt.setQuerySelectType
-  queryt.addResultVars("db","id","script","tc","tcid","mapping","hasoutput","output")
-  //val block=new ElementTriplesBlock
-  //block.add
   val tgs=Group(
-    List(
-  Tgp("db",(RDF.typeProp,Rdb2RdfTest.dataBase),
+    ^("db",(RDF.typeProp,Rdb2RdfTest.dataBase),
            (DCTerms.identifier,"id"),
            (Rdb2RdfTest.sqlScriptFile,"script"),
            (Rdb2RdfTest.relatedTestCase,"tc")),
-  Tgp("tc",(RDF.typeProp,Rdb2RdfTest.r2rml),
+    ^("tc",(RDF.typeProp,Rdb2RdfTest.r2rml),
            (DCTerms.identifier,"tcid"),
            (Rdb2RdfTest.mappingDocument,"mapping"),
            //(Rdb2RdfTest.output,"output"),
-           (Rdb2RdfTest.hasExpectedOutput,"hasoutput"))),
-  OpTgp("tc",(Rdb2RdfTest.output,"output")))
-  queryt.setQueryPattern(tgs.groupelement)
-  /*
-  def iterator(rs:ResultSet)=new Iterator[QuerySolution]{
-    override def next=rs.next
-    override def hasNext=rs.hasNext
-  }  */
+           (Rdb2RdfTest.hasExpectedOutput,"hasoutput")),
+    Optional("tc",Rdb2RdfTest.output,"output"))
+    
+  val queryt=SelectSparqlQuery(tgs,Array("db","id","script","tc","tcid","mapping","hasoutput","output"))
                
   def apply(path:String,name:String)={
     val m=ModelFactory.createDefaultModel

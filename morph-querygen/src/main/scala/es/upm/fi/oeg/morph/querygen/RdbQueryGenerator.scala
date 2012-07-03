@@ -11,13 +11,14 @@ class RdbQueryGenerator(val tm:TriplesMap,r2rml:R2rmlReader) {
   def formatTemplate(template:String,alias:String,colName:String,parent:TriplesMap)={
     val tableName=if (parent!=null)parent.logicalTable.tableName
       else null 
-    val parts=template.split(Array('{','}'))
-    val vars= template.split('{').map{part=>
+    //val parts=template.split(Array('{','}'))
+    val escaped=template.replace("\\{","$lbrace").replace("\\}","$rbrace")
+    val vars= escaped.split('{').map{part=>
       if (part.endsWith("}")) 
         formatColumn(if (colName!=null) colName else part.dropRight(1),tableName)
       else if (part.contains("}")) part.substring(0,part.indexOf('}'))+" || '"+part.substring(part.indexOf('}')+1)+"'"
       else "'"+part+"'"
-    }.mkString(" || ")
+    }.mkString(" || ").replace("$lbrace","{").replace("$rbrace","}")
     "("+vars+") AS "+alias 
   }
   
@@ -32,13 +33,14 @@ class RdbQueryGenerator(val tm:TriplesMap,r2rml:R2rmlReader) {
     
   def formatTable(table:String)=table
   def fromTable=
-    if (tm.logicalTable.tableName!=null) formatTable(tm.logicalTable.tableName)//+tableNames
-    else "("+tm.logicalTable.sqlQuery+")"
+    if (tm.logicalTable.tableName!=null) formatTable(tm.logicalTable.tableName) +" TABLE1 "+tableNames
+    else "("+tm.logicalTable.sqlQuery+")" +" TABLE1 "+tableNames
   
   lazy val tableNames={
     val parents=tm.poMaps.map(_.refObjectMap).filter(_!=null).map(_.parentTriplesMap)
     val logTables=parents.map(p=>r2rml.triplesMaps(p)).map(_.logicalTable)
-    val tables=logTables.filter(_.tableName!=null).map(_.tableName)
+    //val tables=logTables.filter(_.tableName!=null).map(_.tableName)
+    val tables=logTables.map(lt=>if (lt.tableName!=null) lt.tableName+ " TABLE2 " else "("+lt.sqlQuery+") TABLE2")
     if (tables.size>0) ","+tables.mkString(",")
     else ""
   }
@@ -57,7 +59,10 @@ class RdbQueryGenerator(val tm:TriplesMap,r2rml:R2rmlReader) {
         val parent=r2rml.tMaps.find(_.uri==po.refObjectMap.parentTriplesMap).get
         val childCol=if (po.refObjectMap.joinCondition!=null) po.refObjectMap.joinCondition.child
         else parent.subjectMap.column
-        formatTemplate(parent.subjectMap.template,po.id,childCol,null)
+        if (parent.subjectMap.template!=null)
+          formatTemplate(parent.subjectMap.template,po.id,childCol,null)
+        else
+          parent.subjectMap.column+" AS "+po.id
       }
       else po.objectMap.toString}.mkString(",")
   }
@@ -71,7 +76,7 @@ class RdbQueryGenerator(val tm:TriplesMap,r2rml:R2rmlReader) {
   private def formatJoinCondition(roMap:RefObjectMap)={
     val parent=r2rml.triplesMaps(roMap.parentTriplesMap)
     val join=roMap.joinCondition
-    parent.logicalTable.tableName+"."+join.parent+"="+tm.logicalTable.tableName+"."+join.child
+    "TABLE2."+join.parent+"="+"TABLE1."+join.child
   }
     
   
@@ -87,7 +92,7 @@ class RdbQueryGenerator(val tm:TriplesMap,r2rml:R2rmlReader) {
     else ""
   
   def query={    
-    "SELECT "+selectSubject+selectGraph+","+selectObject+" FROM "+fromTable//+where 
+    "SELECT "+selectSubject+selectGraph+","+selectObject+" FROM "+fromTable+where 
   }
 }
 

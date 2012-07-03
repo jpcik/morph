@@ -1,24 +1,22 @@
 package es.upm.fi.oeg.morph.tc
-import scala.io.Source
-import es.upm.fi.oeg.morph.execute.RdfGenerator
 import java.io.File
-import java.util.Properties
 import java.io.InputStream
-import com.hp.hpl.jena.rdf.model.ModelFactory
-import java.io.FileInputStream
-import com.hp.hpl.jena.query.DataSource
-import collection.JavaConversions._
-import com.hp.hpl.jena.sparql.core.DatasetGraph
+import java.util.Properties
+import scala.collection.JavaConversions._
+import scala.io.Source
+import org.openjena.riot.Lang
+import org.openjena.riot.RiotLoader
+import org.openjena.riot.RiotWriter
 import com.hp.hpl.jena.graph.Graph
-import com.hp.hpl.jena.query.DatasetFactory
-import es.upm.fi.oeg.morph.voc.RDFFormat
+import com.hp.hpl.jena.sparql.core.DatasetGraph
+import es.upm.fi.oeg.morph.execute.RdfGenerator
 import es.upm.fi.oeg.morph.r2rml.R2rmlReader
 import es.upm.fi.oeg.morph.relational.JDBCRelationalModel
-import org.openjena.riot.RiotLoader
-import org.openjena.riot.Lang
-import org.openjena.riot.RiotWriter
+import es.upm.fi.oeg.siq.sparql.Sparql
+import java.io.FileWriter
+import java.io.FileOutputStream
 
-class SuiteTester(testPath:String,val name:String){
+class SuiteTester(testPath:String,val name:String) extends Sparql{
   val props=load(getClass.getClassLoader().getResourceAsStream("config.properties"))
   
   val manifestFile="manifest.ttl"
@@ -45,11 +43,13 @@ class SuiteTester(testPath:String,val name:String){
     
     val ds=new RdfGenerator(reader,relat).generate
     RiotWriter.writeNQuads(System.out,ds.asDatasetGraph)
+    val suffix=tc.mappingDoc.replace("r2rml","").dropRight(4)
+    RiotWriter.writeNQuads(new FileOutputStream(testPath+"/"+name+"/mapped"+suffix+"-morph.nq"),ds.asDatasetGraph)
     println("output: "+tc.output)
     
     if (tc.output!=null) {
       val output=RiotLoader.load(testPath+"/"+name+"/"+tc.output, Lang.NQUADS)
-      RiotWriter.writeNQuads(System.out,output)
+      RiotWriter.writeNQuads(System.out,output)      
       //output.getReader("N-Quads").read(output,new FileInputStream(testPath+"/"+name+"/"+tc.output),"")
       //output.write(System.out,RDFFormat.N3)      
       val compareEquals=compare(output,ds.asDatasetGraph)
@@ -61,7 +61,8 @@ class SuiteTester(testPath:String,val name:String){
   }
   
   def compare(d1:DatasetGraph,d2:DatasetGraph):Boolean={
-    val c1=d1.getDefaultGraph().isIsomorphicWith(d2.getDefaultGraph)
+    
+    val c1=compare(d1.getDefaultGraph,d2.getDefaultGraph)
     if (d1.listGraphNodes.isEmpty && d2.listGraphNodes.isEmpty)
       c1
     else{
@@ -76,9 +77,17 @@ class SuiteTester(testPath:String,val name:String){
   }
   
   def compare(g1:Graph,g2:Graph)={
+    compareValues(g1,g2)
+    println(g1.getClass())
     g1.isIsomorphicWith(g2)
   }
 
+  def compareValues(g1:Graph,g2:Graph)={
+    val res=g1.find("s","p","o")
+    res.foreach{a=>println(a.asTriple)
+      println(g2.contains("s",a.getPredicate,a.getObject))}
+  }
+  
   def testAll{
     manifest.database.testcases.foreach{tc=>
       //try{

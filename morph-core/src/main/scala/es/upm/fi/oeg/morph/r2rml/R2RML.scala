@@ -1,7 +1,7 @@
 package es.upm.fi.oeg.morph.r2rml
 import es.upm.fi.oeg.morph.voc.Vocabulary
 
-class R2RML {}
+//class R2RML {}
 object R2RML extends Vocabulary{
   override val prefix="http://www.w3.org/ns/r2rml#"
  
@@ -38,6 +38,7 @@ object R2RML extends Vocabulary{
   val termType = property("termType")
   val predicate = property("predicate")
   val objectProp = property("object")
+  val language = property("language")
 
   val inverseExpression = property("inverseExpression") 
   val joinCondition = property("joinCondition")
@@ -48,6 +49,5 @@ object R2RML extends Vocabulary{
   
   val IRI=resource("IRI")
   val BlankNode=resource("BlankNode")
-  val Literal=resource("Literal")
-    
+  val Literal=resource("Literal")    
 }

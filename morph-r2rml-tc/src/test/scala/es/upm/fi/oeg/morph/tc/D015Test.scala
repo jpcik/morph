@@ -7,14 +7,14 @@ class D015Test extends R2RMLTest("D015-1table3columns1composityeprimarykey3rows2
 
   @Before def initialize() {}
    
-  @Test@Ignore def testTC015a{
-	val tc=suit.getTc("R2RMLTC015a")	
+  @Test def testTC015a{
+	val tc=suit.getTc("R2RMLTC0015a")	
 	val ds=suit.testTc(tc.get)
 	val dg=ds.asDatasetGraph
 	dg.getDefaultGraph.size should be (4)
   }
-  @Test@Ignore def testTC015b{
-	val tc=suit.getTc("R2RMLTC015b")	
+  @Test def testTC015b{
+	val tc=suit.getTc("R2RMLTC0015b")	
 	val ds=suit.testTc(tc.get)
 	val dg=ds.asDatasetGraph
 	dg.getDefaultGraph.size should be (4)
