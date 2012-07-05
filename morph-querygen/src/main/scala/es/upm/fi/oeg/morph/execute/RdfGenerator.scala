@@ -19,6 +19,7 @@ import com.hp.hpl.jena.datatypes.RDFDatatype
 import es.upm.fi.oeg.morph.r2rml.PredicateObjectMap
 import es.upm.fi.oeg.morph.r2rml.LiteralType
 import es.upm.fi.oeg.morph.r2rml.IRIType
+import java.sql.SQLException
 
 class RelationalQueryException(msg:String,e:Throwable) extends Exception(msg,e)
 
@@ -59,8 +60,11 @@ class RdfGenerator(model:R2rmlReader,relational:RelationalModel) {
       println("query "+q)
       
       val res=try relational.query(q)
-      catch {case ex:SQLSyntaxErrorException=>
-        throw new RelationalQueryException("Invalid query: "+ex.getMessage,ex)} 
+      catch {
+        case ex:SQLSyntaxErrorException=>
+          throw new RelationalQueryException("Invalid query syntax: "+ex.getMessage,ex)
+        case ex:SQLException=>throw new RelationalQueryException("Invalid query: "+ex.getMessage,ex)
+      } 
       
       val tgen=new TripleGenerator(ds,tMap,baseUri)
       while (res.next){        

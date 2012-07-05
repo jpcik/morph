@@ -46,7 +46,10 @@ case class TripleGenerator(d:DataSource,tm:TriplesMap, baseUri:String){
 	  val prepend=
 	    if (subj.template!=null && !idurl.startsWith("http"))
 	      baseUri+URLTools.encodeAll(id)
-	    else  if (idurl.startsWith("http")) idurl else baseUri+idurl
+	    else if (subj.template!=null && subj.template.startsWith("{"))
+	      baseUri+URLTools.encodeAll(id)
+	    else  if (idurl.startsWith("http")) idurl 
+	    else baseUri+idurl
 	  if (ttype.isBlank)
 		genModel.createResource(new AnonId(idurl))
 	  else if (subj.template!=null)

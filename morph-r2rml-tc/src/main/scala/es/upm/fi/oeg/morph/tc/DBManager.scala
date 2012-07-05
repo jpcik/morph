@@ -2,11 +2,14 @@ package es.upm.fi.oeg.morph.tc
 import java.sql.DriverManager._
 import java.sql.PreparedStatement
 
-class DBManager {
-  val c=  Class.forName("org.hsqldb.jdbcDriver").newInstance
-  def connection=getConnection("jdbc:hsqldb:mem:test","SA","")
+class DBManager(driver:String,db:String,user:String,pass:String,createSchema:Boolean) {
+  val c=  Class.forName(driver).newInstance
+  def connection=getConnection(db,user,pass)
   def createDB(script:String){
     val c = connection		
+    if (createSchema)
+      c.prepareStatement("CREATE SCHEMA PUBLIC").execute
+
     script.split(';').foreach{s=>
       println("executing: "+s)
       if (s.size>5)        

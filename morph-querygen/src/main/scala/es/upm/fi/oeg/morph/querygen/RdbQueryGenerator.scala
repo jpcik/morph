@@ -3,6 +3,7 @@ import es.upm.fi.oeg.morph.r2rml.TriplesMap
 import es.upm.fi.oeg.morph.r2rml.R2rmlReader
 import es.upm.fi.oeg.morph.r2rml.JoinCondition
 import es.upm.fi.oeg.morph.r2rml.RefObjectMap
+import es.upm.fi.oeg.morph.r2rml.R2rmlUtils._
 
 class RdbQueryGenerator(val tm:TriplesMap,r2rml:R2rmlReader) {
   def formatTemplate(template:String,alias:String):String=
@@ -10,13 +11,13 @@ class RdbQueryGenerator(val tm:TriplesMap,r2rml:R2rmlReader) {
     
   def formatTemplate(template:String,alias:String,colName:String,parent:TriplesMap)={
     val tableName=if (parent!=null)parent.logicalTable.tableName
-      else null 
-    //val parts=template.split(Array('{','}'))
+      else "TABLE1"
     val escaped=template.replace("\\{","$lbrace").replace("\\}","$rbrace")
     val vars= escaped.split('{').map{part=>
       if (part.endsWith("}")) 
         formatColumn(if (colName!=null) colName else part.dropRight(1),tableName)
-      else if (part.contains("}")) part.substring(0,part.indexOf('}'))+" || '"+part.substring(part.indexOf('}')+1)+"'"
+      else if (part.contains("}")) 
+        formatColumn(part.substring(0,part.indexOf('}')),tableName)+" || '"+part.substring(part.indexOf('}')+1)+"'"
       else "'"+part+"'"
     }.mkString(" || ").replace("$lbrace","{").replace("$rbrace","}")
     "("+vars+") AS "+alias 
@@ -33,16 +34,31 @@ class RdbQueryGenerator(val tm:TriplesMap,r2rml:R2rmlReader) {
     
   def formatTable(table:String)=table
   def fromTable=
-    if (tm.logicalTable.tableName!=null) formatTable(tm.logicalTable.tableName) +" TABLE1 "+tableNames
-    else "("+tm.logicalTable.sqlQuery+")" +" TABLE1 "+tableNames
+    if (tm.logicalTable.tableName!=null) formatTable(tm.logicalTable.tableName) +" TABLE1 "+joinTables
+    else formatQuery(tm.logicalTable.sqlQuery) +" TABLE1 "+joinTables
+  
+  private def formatQuery(q:String)={
+    val qu=q.replaceAll("\t","").replaceAll("\n","").trim
+    "("+ (if (qu.trim.endsWith(";")) qu.dropRight(1) else qu) +")"
+  } 
+    
+  lazy val joinTables={
+    val roMaps=tm.poMaps.map(_.refObjectMap).filter(_!=null)
+    roMaps.map{roMap=>
+      val lt=r2rml.triplesMaps(roMap.parentTriplesMap).logicalTable
+      val table=if (lt.tableName!=null) lt.tableName else formatQuery(lt.sqlQuery)
+      " LEFT OUTER JOIN "+table+ " TABLE2 ON "+formatJoinCondition(roMap)
+    }.mkString
+    
+  }
   
   lazy val tableNames={
     val parents=tm.poMaps.map(_.refObjectMap).filter(_!=null).map(_.parentTriplesMap)
     val logTables=parents.map(p=>r2rml.triplesMaps(p)).map(_.logicalTable)
-    //val tables=logTables.filter(_.tableName!=null).map(_.tableName)
-    val tables=logTables.map(lt=>if (lt.tableName!=null) lt.tableName+ " TABLE2 " else "("+lt.sqlQuery+") TABLE2")
-    if (tables.size>0) ","+tables.mkString(",")
-    else ""
+    val tables=logTables.map(lt=>if (lt.tableName!=null) lt.tableName+ " TABLE2 " else formatQuery(lt.sqlQuery)+ " TABLE2")
+    tables.map(t=>" INNER JOIN "+t).mkString
+    //if (tables.size>0) ","+tables.mkString(",")
+    //else ""
   }
     
   def selectSubject=
@@ -52,7 +68,7 @@ class RdbQueryGenerator(val tm:TriplesMap,r2rml:R2rmlReader) {
    
   def selectObject={
     tm.poMaps.map{po=>
-      if (po.objectMap!=null && po.objectMap.col!=null) po.objectMap.col+" AS "+po.id
+      if (po.objectMap!=null && po.objectMap.col!=null) formatColumn(po.objectMap.col,"TABLE1")+" AS "+po.id
       else if (po.objectMap!=null && po.objectMap.temp!=null) formatTemplate(po.objectMap.temp,po.id)
       else if (po.objectMap!=null && po.objectMap.constant!=null) "'"+po.objectMap.constant+"' AS "+po.id
       else if (po.refObjectMap!=null) {
@@ -76,7 +92,9 @@ class RdbQueryGenerator(val tm:TriplesMap,r2rml:R2rmlReader) {
   private def formatJoinCondition(roMap:RefObjectMap)={
     val parent=r2rml.triplesMaps(roMap.parentTriplesMap)
     val join=roMap.joinCondition
-    "TABLE2."+join.parent+"="+"TABLE1."+join.child
+    if (join==null) 
+      "TABLE2."+extractColumn(parent.subjectMap)+"= TABLE1."+extractColumn(parent.subjectMap)
+    else  "TABLE2."+join.parent+"="+"TABLE1."+join.child
   }
     
   
@@ -92,7 +110,7 @@ class RdbQueryGenerator(val tm:TriplesMap,r2rml:R2rmlReader) {
     else ""
   
   def query={    
-    "SELECT "+selectSubject+selectGraph+","+selectObject+" FROM "+fromTable+where 
+    "SELECT "+selectSubject+selectGraph+","+selectObject+" FROM "+fromTable//+where 
   }
 }
 

@@ -1,4 +1,0 @@
-<http://example.com/base/Sue_Jones_20.0E0> <http://example.com/amount> "20.0E0"^^<http://www.w3.org/2001/XMLSchema#double> .
-<http://example.com/base/30.0E0_Bob_Smith> <http://example.com/amount> "30.0E0"^^<http://www.w3.org/2001/XMLSchema#double> .
-<http://example.com/base/20.0E0_Sue_Jones> <http://example.com/amount> "20.0E0"^^<http://www.w3.org/2001/XMLSchema#double> .
-<http://example.com/base/Bob_Smith_30.0E0> <http://example.com/amount> "30.0E0"^^<http://www.w3.org/2001/XMLSchema#double> .

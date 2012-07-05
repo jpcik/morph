@@ -6,6 +6,7 @@ import com.hp.hpl.jena.datatypes.RDFDatatype
 import es.upm.fi.oeg.morph.r2rml.R2rmlUtils._
 import java.net.URI
 import es.upm.fi.oeg.siq.tools.URLTools
+import java.util.Locale
 
 case class TriplesMap(uri:String,logicalTable:LogicalTable,
     subjectMap:SubjectMap,poMaps:Array[PredicateObjectMap]){
@@ -67,7 +68,16 @@ object GraphMap{
 
 case class ObjectMap(const:RDFNode,col:String,temp:String,term:TermType,
     language:String,dtype:RDFDatatype,inv:String)
-  extends TermMap(const,col,temp,term)
+  extends TermMap(const,col,temp,term){
+  if (language!=null){
+    if (!coso.locales.contains(language))
+      throw new R2rmlModelException("invalid language code: "+language)
+  }
+}
+object coso{
+  val locales=Locale.getAvailableLocales.map(_.toString).toSet
+}
+
 
 case class RefObjectMap(parentTriplesMap:String,joinCondition:JoinCondition) 
 

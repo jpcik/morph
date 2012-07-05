@@ -1,4 +1,0 @@
-<http://example.com/Sue%3BJones> <http://example.com/owes> "20.0E0"^^<http://www.w3.org/2001/XMLSchema#double> .
-<http://example.com/Sue%3BJones> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
-<http://example.com/Bob%3BSmith> <http://example.com/owes> "30.0E0"^^<http://www.w3.org/2001/XMLSchema#double> .
-<http://example.com/Bob%3BSmith> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .

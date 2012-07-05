@@ -13,5 +13,11 @@ class D005Test extends R2RMLTest("D005-1table3columns3rows2duplicates") {
 	dg.getDefaultGraph.size should be (4)
   }
 
+  @Test def testTC0005b{
+	val tc=suit.getTc("R2RMLTC0005b")	
+	val ds=suit.testTc(tc.get)
+	val dg=ds.asDatasetGraph
+	dg.getDefaultGraph.size should be (4)
+  }
 
 }

@@ -12,6 +12,7 @@ libraryDependencies ++= Seq(
   "es.upm.fi.oeg.morph" % "morph-core" % "1.0.0",
   "es.upm.fi.oeg.morph" % "morph-querygen" % "1.0.0",
   "org.hsqldb" % "hsqldb" % "2.2.8",
+  "postgresql" % "postgresql" % "9.1-901.jdbc4",
   "org.scalatest" % "scalatest_2.9.1" % "1.7.2" % "test",
   "org.scalacheck" % "scalacheck_2.9.1" % "1.9" % "test"
 )

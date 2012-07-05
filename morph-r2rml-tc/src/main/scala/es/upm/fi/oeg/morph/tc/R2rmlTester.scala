@@ -22,7 +22,9 @@ class SuiteTester(testPath:String,val name:String) extends Sparql{
   val manifestFile="manifest.ttl"
   val manifest=Manifest(testPath+"/"+name+"/"+manifestFile,name)
   val script=Source.fromFile(testPath+"/"+name+"/"+manifest.database.scriptFile).getLines.map(_+"\r\n")reduceLeft(_+_)
-  val db=new DBManager
+  val createSchema=props.getProperty("morph.rdb.createschema")==true
+  val db=new DBManager(props("jdbc.driver"),props("jdbc.source.url"),
+      props("jdbc.source.user"),props("jdbc.source.password"),createSchema)
   db.clearDB
   db.createDB(script)
  
@@ -97,7 +99,7 @@ class SuiteTester(testPath:String,val name:String) extends Sparql{
     }
   }
 }
-
+/*
 object R2rmlTester {
   var testPath=""
   val db=new DBManager
@@ -107,8 +109,8 @@ object R2rmlTester {
     
 	
   }
-  
-
+  */
+/*
   def main(args:Array[String]){
     testPath=args(0)
     val db=new DBManager
@@ -121,4 +123,4 @@ object R2rmlTester {
     }
   }
   
-}
+}*/

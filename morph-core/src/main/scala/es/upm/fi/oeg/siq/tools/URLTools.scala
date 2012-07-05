@@ -41,7 +41,7 @@ object URLTools {
 
   private def isUnsafe(ch:Char):Boolean= 
     if (ch > 128 || ch < 0) true
-    else " %$&+,;=?@<>%".indexOf(ch) >= 0
+    else " %$&+,=?@<>%".indexOf(ch) >= 0
   
   private def isSpecial(ch:Char):Boolean= {
     if (ch > 128 || ch < 0) return true
