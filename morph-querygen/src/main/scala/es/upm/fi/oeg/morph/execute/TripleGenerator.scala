@@ -18,6 +18,7 @@ import com.hp.hpl.jena.rdf.model.ModelFactory
 import es.upm.fi.oeg.siq.tools.XsdTypes
 import es.upm.fi.oeg.siq.tools.URLTools
 import es.upm.fi.oeg.morph.r2rml.IRIType
+import es.upm.fi.oeg.morph.r2rml.LiteralType
 
 case class TripleGenerator(d:DataSource,tm:TriplesMap, baseUri:String){
   def genModel=d.getDefaultModel
@@ -27,12 +28,8 @@ case class TripleGenerator(d:DataSource,tm:TriplesMap, baseUri:String){
     Normalizer.normalize(str, Normalizer.Form.NFD).replaceAll("[^\\w ]", "").replace(" ", "-").toLowerCase
   }
   
-  def urlize(url:String)= {
-    URLTools.encode(url)
-  } 
-  
   def genSubject(rs:ResultSet):Resource=genSubject(rs,"SUBJECT")   
-  
+   
   def genSubject(rs:ResultSet,col:String)={
     val subj=tm.subjectMap
     println("metacolumn "+rs.getMetaData.getColumnName(1))
@@ -41,33 +38,28 @@ case class TripleGenerator(d:DataSource,tm:TriplesMap, baseUri:String){
     if (id==null) null
     else {
       val ttype=subj.termType
-	  val idurl = //if (subj.template!=null && subj.termType==IRIType) URLTools.encodeAll(id) 
-	    urlize(id)
-	  val prepend=
-	    if (subj.template!=null && !idurl.startsWith("http"))
-	      baseUri+URLTools.encodeAll(id)
-	    else if (subj.template!=null && subj.template.startsWith("{"))
-	      baseUri+URLTools.encodeAll(id)
-	    else  if (idurl.startsWith("http")) idurl 
-	    else baseUri+idurl
-	  if (ttype.isBlank)
-		genModel.createResource(new AnonId(idurl))
-	  else if (subj.template!=null)
-		genModel.createResource(prepend)//generateTemplateVal(subj.template,id))
-	  //else if (!idurl.startsWith("http"))
-	    //genModel.createResource(baseUri+idurl)
-	  else
-		genModel.createResource(prepend)
+      if (ttype.isIRI){
+        val value=
+          if (subj.template!=null) URLTools.encode(id)
+          else id
+        val finalval=if (URLTools.isAbsIRI(value))
+          value else baseUri+value
+        genModel.createResource(finalval)
+      }
+      else if (ttype.isBlank)
+		genModel.createResource(new AnonId(URLTools.encode(id)))
+	  else throw new Exception("Invalid Term Type "+ttype)
     }
   }
 
   def genRdfType()={
 	tm.subjectMap.rdfsClass		
   } 
+  
   def genGraph(rs:ResultSet)={
     val gMap=tm.subjectMap.graphMap
     if (gMap.template!=null)
-      urlize(rs.getString("SUBJECTGRAPH"))
+      URLTools.encode(rs.getString("SUBJECTGRAPH"))
      else null
   }
   
@@ -102,17 +94,22 @@ case class POGenerator(ds:DataSource,poMap:PredicateObjectMap,parentTMap:Triples
   }
   
   def generate(subj:Resource,rs:ResultSet)={
+    //RefObjectMap
     if (poMap.refObjectMap!=null){
 	  val obj=new TripleGenerator(ds,parentTMap,baseUri).genSubject(rs,poMap.id)
 	  (obj,null)
 	}
-    else{
+    //ObjectMap
+    else{ 
 	  val typeInResult=rs.getMetaData.getColumnType(rs.findColumn(poMap.id))
 	  val datatype = if (poMap.objectMap.dtype!=null) 
 	      poMap.objectMap.dtype
 		else XsdTypes.sqlType2XsdType(typeInResult)	
-		
-	  if (poMap.objectMap.constant==null)
+	  if (poMap.objectMap.termType == IRIType)
+	    (rs.getString(poMap.id),null)
+	  if (poMap.objectMap.termType == LiteralType)
+	    (rs.getString(poMap.id),datatype)
+	  else if (poMap.objectMap.constant==null)
 		(rs.getString(poMap.id),datatype)		
 	  else				
 		(poMap.objectMap.constant,null)

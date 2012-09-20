@@ -9,6 +9,7 @@ import java.io.InputStream
 import com.hp.hpl.jena.rdf.model.RDFReader
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import es.upm.fi.oeg.morph.voc.RDFFormat
+import es.upm.fi.oeg.morph.r2rml.R2RML._
 import com.hp.hpl.jena.n3.turtle.TurtleParseException
 import org.openjena.riot.RiotException
 import com.weiglewilczek.slf4s.Logging
@@ -25,34 +26,28 @@ import es.upm.fi.oeg.siq.sparql.XSDtypes
 import com.hp.hpl.jena.graph.Node
 import com.hp.hpl.jena.rdf.model.Resource
 import com.hp.hpl.jena.shared.JenaException
+import java.net.URL
 
-class R2rmlReader() extends Sparql with XSDtypes with Logging {  
-  val model=ModelFactory.createDefaultModel
+class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes with Logging {  
+  private val model=ModelFactory.createDefaultModel
   val triplesMaps=new collection.mutable.HashMap[String,TriplesMap]
+  read(mappingStream)
   
-  lazy val tMaps=readTriplesMap(null)
+  lazy val tMaps=triplesMaps.values//readTriplesMap(null)
   def filterBySubject(uri:String)=tMaps.filter(t=>t.subjectMap.rdfsClass.getURI.equals(uri))
   def filterByPredicate(uri:String)=tMaps.map(t=>
     t.poMaps.filter(_.predicateIs(uri))map((_,t))).flatten
   def allPredicates=tMaps.map(t=>t.poMaps.map((_,t))).flatten
-    
-    
-  def read(mappingUrl:URI){ 
-	try {
-	  val in = new FileInputStream(mappingUrl.toString)
-	  this.read(in)
-	  in.close
-	} catch {
-	  case e:FileNotFoundException => try{
-	    val iss = getClass.getClassLoader.getResourceAsStream(mappingUrl.toString)
-		this.read(iss)
-		} catch {
-		  case ex:IOException=>throw new IllegalArgumentException("Cannot read r2rml "+mappingUrl)
-		}				
-	}
+     
+  def this(mappingFile:String) = this{
+    val uri=new URI(mappingFile)
+    val fis:InputStream =// try
+      R2RML.getClass.getClassLoader.getResourceAsStream(mappingFile)
+    if (fis==null) new FileInputStream(mappingFile)
+    else fis
   }
-	
-  def read(in:InputStream){ 
+    	
+  private def read(in:InputStream){ 
 	val arp:RDFReader= model.getReader(RDFFormat.TTL)
 	try arp.read(model,in,"")
 	catch {
@@ -63,6 +58,8 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
 	  case e:RiotException => throw new IllegalArgumentException("Error parsing r2rml ",e)
 	  case e:JenaException => throw new R2rmlModelException("Invalid R2RML ",e)
 	}
+	in.close
+	readTriplesMap(null)
 	model.write(System.out,RDFFormat.TTL)	
   }
 
@@ -78,20 +75,20 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
 	  else "tMap"
 
 	val group=Group(
-	  ^(tMapVar,(RDF.a,R2RML.TriplesMap),(R2RML.logicalTable,"lt"),(R2RML.subjectMap,"sMap")),                            
-      Optional("lt",R2RML.sqlQuery,"query"),
-      Optional("lt",R2RML.sqlVersion,"version"),
-      Optional("lt",R2RML.tableName,"table"),
-      Optional("sMap",R2RML.classProperty,"sClass"),
-      Optional("sMap",R2RML.column,"sCol"),
-      Optional("sMap",R2RML.template,"sTemp"),
-      Optional("sMap",R2RML.termType,"sTerm"),
-      Optional("sMap",R2RML.inverseExpression,"sInv"),
-      Optional("sMap",R2RML.constant,"sConst"),
-      Optional("sMap",R2RML.graph,"directGraph"),
-      Optional(^("gMap",R2RML.termType,"gTerm"),^("sMap",R2RML.graphMap,"gMap")),
-      Optional(^("gMap",R2RML.constant,"gConst"),^("sMap",R2RML.graphMap,"gMap")),
-      Optional(^("gMap",R2RML.template,"gTemp"),^("sMap",R2RML.graphMap,"gMap"))
+	  ^(tMapVar,(RDF.a,R2RML.TriplesMap),(logicalTable,"lt"),(subjectMap,"sMap")),                            
+      Optional("lt",sqlQuery,"query"),
+      Optional("lt",sqlVersion,"version"),
+      Optional("lt",tableName,"table"),
+      Optional("sMap",classProperty,"sClass"),
+      Optional("sMap",column,"sCol"),
+      Optional("sMap",template,"sTemp"),
+      Optional("sMap",termType,"sTerm"),
+      Optional("sMap",inverseExpression,"sInv"),
+      Optional("sMap",constant,"sConst"),
+      Optional("sMap",graph,"directGraph"),
+      Optional(^("gMap",termType,"gTerm"),^("sMap",graphMap,"gMap")),
+      Optional(^("gMap",constant,"gConst"),^("sMap",graphMap,"gMap")),
+      Optional(^("gMap",template,"gTemp"),^("sMap",graphMap,"gMap"))
     )
     val vars=Array("tMap","query","version","table","sClass","sCol","sTerm","sConst",
 				   "sInv","sTemp","gConst","directGraph","gMap","gTemp","gTerm")	    	    
@@ -135,25 +132,24 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
 
     val group=Group(
 	  ^(tMapUri,RDF.a,R2RML.TriplesMap),
-      ^(tMapUri,R2RML.predicateObjectMap,"poMap"),
-      Optional("poMap",R2RML.graph,"graph"),
-      Optional(^("pMap",R2RML.constant,"predicate"),^("poMap",R2RML.predicateMap,"pMap")),
-      Optional(^("pMap",R2RML.column,"pCol"),^("poMap",R2RML.predicateMap,"pMap")),                   
-      Optional(^("oMap",R2RML.template,"oTemp"),^("poMap",R2RML.objectMap,"oMap")),
-      Optional(^("oMap",R2RML.constant,"oConst"),^("poMap",R2RML.objectMap,"oMap")),
-      Optional(^("oMap",R2RML.column,"oCol"),^("poMap",R2RML.objectMap,"oMap")),
-      Optional(^("poMap",R2RML.objectMap,"oMap"),^("oMap",R2RML.joinCondition,"join"),
-               ^("join",R2RML.parent,"joinParent"),^("join",R2RML.child,"joinChild")),
-      Optional(^("poMap",R2RML.objectMap,"oMap"),^("oMap",R2RML.termType,"oTerm")),
-      Optional("oMap",R2RML.datatype,"odType"),
-      Optional("oMap",R2RML.language,"lang"),
-      Optional(^("poMap",R2RML.objectMap,"oMap"),^("oMap",R2RML.parentTriplesMap,"parentTMap")),
-
+      ^(tMapUri,predicateObjectMap,"poMap"),
+      Optional("poMap",graph,"graph"),
+      Optional(^("pMap",constant,"predicate"),^("poMap",predicateMap,"pMap")),
+      Optional(^("pMap",column,"pCol"),^("poMap",predicateMap,"pMap")),                   
+      Optional(^("oMap",template,"oTemp"),^("poMap",objectMap,"oMap")),
+      Optional(^("oMap",constant,"oConst"),^("poMap",objectMap,"oMap")),
+      Optional(^("oMap",column,"oCol"),^("poMap",objectMap,"oMap")),
+      Optional(^("poMap",objectMap,"oMap"),^("oMap",termType,"oTerm")),
+      Optional(^("poMap",objectMap,"oMap"),^("oMap",datatype,"odType")),
+      Optional(^("poMap",objectMap,"oMap"),^("oMap",language,"lang")),
+      Optional(^("poMap",objectMap,"oMap"),^("oMap",parentTriplesMap,"parentTMap")),
+      Optional(^("poMap",objectMap,"oMap"),^("oMap",joinCondition,"join"),
+               ^("join",parent,"joinParent"),^("join",child,"joinChild")),
 	  Group(Union(
-		Group(^("poMap",R2RML.predicateMap,"pMap"),^("poMap",R2RML.objectMap,"oMap")),
-		Group(^("poMap",R2RML.predicate,"directPredicate"),^("poMap",R2RML.objectMap,"oMap")),
-		Group(^("poMap",R2RML.predicate,"directPredicate"),^("poMap",R2RML.objectProp,"directObject")),
-		Group(^("poMap",R2RML.predicateMap,"pMap"),^("poMap",R2RML.objectProp,"directObject"))
+		Group(^("poMap",predicateMap,"pMap"),^("poMap",objectMap,"oMap")),
+		Group(^("poMap",predicate,"directPredicate"),^("poMap",objectMap,"oMap")),
+		Group(^("poMap",predicate,"directPredicate"),^("poMap",objectProp,"directObject")),
+		Group(^("poMap",predicateMap,"pMap"),^("poMap",objectProp,"directObject"))
 	   ))		          		          
      )
           
@@ -189,9 +185,5 @@ class R2rmlReader() extends Sparql with XSDtypes with Logging {
 }
 
 object R2rmlReader{
-  def apply(mappingUrl:String)={
-    val r=new R2rmlReader
-    r.read(new URI(mappingUrl))
-    r
-  }
+  def apply(mappingUrl:String)=new R2rmlReader(mappingUrl)
 }

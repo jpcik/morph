@@ -62,8 +62,7 @@ object Manifest extends Sparql{
 	val db=new Database(results.head.getLiteral("id").getString,"",
 	    results.head.getLiteral("script").getString,tcases.toArray)
 	new Manifest(name,db)  
-  }
-		
+  }		
   
   
 }

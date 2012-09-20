@@ -47,4 +47,8 @@ object URLTools {
     if (ch > 128 || ch < 0) return true
     return " \"/%$:&+,;=?@<>#%{}\\".indexOf(ch) >= 0;
   }
+    
+  def isAbsIRI(iri:String)={
+    iri.startsWith("http://") || iri.startsWith("https://") 
+  }
 }

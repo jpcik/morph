@@ -23,9 +23,12 @@ import java.sql.SQLException
 
 class RelationalQueryException(msg:String,e:Throwable) extends Exception(msg,e)
 
-class RdfGenerator(model:R2rmlReader,relational:RelationalModel) {
+class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel) {
   val baseUri="http://example.com/base/"
   type GeneratedTriple=(Resource,Property,Object,RDFDatatype)
+  
+  
+  
   private def addTriple(m:Model,subj:Resource,p:Property,obj:(Object,RDFDatatype),poMap:PredicateObjectMap)={
     val (ob,datatype)=obj
     val oMap=poMap.objectMap
@@ -34,15 +37,17 @@ class RdfGenerator(model:R2rmlReader,relational:RelationalModel) {
 		m.add(subj,p,ob.asInstanceOf[Resource])
 	  else if (oMap.dtype!=null && datatype!=null)		          
 	    m.add(subj,p,ob.toString,datatype)
+	  else if (oMap.template!=null && oMap.termType.equals(IRIType))
+		m.add(subj,p,m.createResource(ob.toString))	   
+	  else if (oMap.template!=null && oMap.termType.equals(LiteralType))
+		m.add(subj,p,ob.toString,oMap.language)	   
 	  else if (oMap.column!=null && oMap.termType==IRIType)
 		m.add(subj,p,m.createResource(ob.toString))	   
 	  else if (oMap.column!=null && datatype!=null && datatype==XSDDatatype.XSDstring)
 		m.add(subj,p,ob.toString,oMap.language)	   
 	  else if (oMap.column!=null && datatype!=null && datatype!=XSDDatatype.XSDstring)
 		m.add(subj,p,ob.toString,datatype)	   
-	  else if (oMap.template!=null && oMap.termType==LiteralType)
-		m.add(subj,p,ob.toString,oMap.language)	   
-	  else if (oMap.constant!=null && oMap.termType==LiteralType)
+	  else if (oMap.constant!=null && oMap.termType.equals(LiteralType))
 		m.add(subj,p,ob.toString,oMap.language)	   
 	  else if (oMap.constant!=null )
 		m.add(subj,p,ob.toString,oMap.language)	   
@@ -53,16 +58,15 @@ class RdfGenerator(model:R2rmlReader,relational:RelationalModel) {
   def generate={
     val m = ModelFactory.createDefaultModel
 	val ds = DatasetFactory.create(m) 
-    if (model.tMaps.isEmpty)
+    if (r2rml.tMaps.isEmpty)
       throw new Exception("No valid R2RML mappings in the provided document.")
-    val queries=model.tMaps.foreach{tMap=>
-      val q=new RdbQueryGenerator(tMap,model).query
+    val queries=r2rml.tMaps.foreach{tMap=>
+      val q=new RdbQueryGenerator(tMap,r2rml).query
       println("query "+q)
       
       val res=try relational.query(q)
       catch {
-        case ex:SQLSyntaxErrorException=>
-          throw new RelationalQueryException("Invalid query syntax: "+ex.getMessage,ex)
+        case ex:SQLSyntaxErrorException=>throw new RelationalQueryException("Invalid query syntax: "+ex.getMessage,ex)
         case ex:SQLException=>throw new RelationalQueryException("Invalid query: "+ex.getMessage,ex)
       } 
       
@@ -71,14 +75,13 @@ class RdfGenerator(model:R2rmlReader,relational:RelationalModel) {
         val subj = tgen.genSubject(res)
         val tMapModel = tgen.graph(res,tMap.subjectMap.graphMap)
           
-        if (subj!=null){
-				
+        if (subj!=null){				
           if (tgen.genRdfType!=null)
             tMapModel.add(subj,RDF.typeProp,tgen.genRdfType)
 												
 		  tMap.poMaps.foreach{prop=>
 		    val parentTmap=if (prop.refObjectMap!=null) 
-		      model.triplesMaps(prop.refObjectMap.parentTriplesMap)
+		      r2rml.triplesMaps(prop.refObjectMap.parentTriplesMap)
 		      else null
 		    val propIns = POGenerator(ds,prop,parentTmap,baseUri)
 		    val po=propIns.generate(null,res)

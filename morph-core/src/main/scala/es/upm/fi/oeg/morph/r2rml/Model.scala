@@ -16,13 +16,23 @@ case class TriplesMap(uri:String,logicalTable:LogicalTable,
 
 class TermType(val resource:Resource){
   def isBlank=resource.equals(R2RML.BlankNode)
-  def ==(tt:TermType)=
-    (resource == null && tt.resource==null) ||
-    (resource!=null && resource.equals(tt.resource))
+  def isIRI=resource.equals(R2RML.IRI)
+  def isLiteral=resource.equals(R2RML.Literal)
+  override def toString="Term("+resource.toString+")"
+  def equals(tt:TermType):Boolean=if (tt==null) false
+    else (resource == null && tt.resource==null) ||
+      (resource!=null && resource.equals(tt.resource))
 }
 
 object TermType {
-  def apply(resource:Resource)=new TermType(resource)
+  def apply(resource:Resource)=
+    if (resource==null) null
+    else resource match{
+    case R2RML.BlankNode=>BlankNodeType
+    case R2RML.IRI=>IRIType
+    case R2RML.Literal=>LiteralType
+    case _=>throw new R2rmlModelException("Invalid TermType "+resource)
+  }
 }
 
 object IRIType extends TermType(R2RML.IRI)
@@ -36,8 +46,8 @@ abstract class TermMap(val constant:RDFNode,val column:String,
     
 case class SubjectMap(const:RDFNode,col:String,temp:String,term:TermType,
   rdfsClass:Resource,graphMap:GraphMap) extends TermMap(const,col,temp,term){
-  override val termType=if (term.resource==null) IRIType else term
-  if (termType==LiteralType) 
+  override val termType=if (term==null) IRIType else term
+  if (termType.equals(LiteralType)) 
     throw new R2rmlModelException("Invalid Term Type sor SubjectMap: "+termType)
   if (allnull(constant,column,template))
     throw new R2rmlModelException("SubjectMap template, column or constant must be defined ")
@@ -56,7 +66,7 @@ class GraphMap(const:RDFNode,col:String,temp:String)
 
 object GraphMap{
   def apply(constant:RDFNode,column:String,template:String,termType:TermType)={
-    if (termType.resource!=null && !termType.resource.getURI.equals(R2RML.IRI))
+    if (termType!=null && termType != IRIType)
       throw new R2rmlModelException("Non IRI terms not allowed for graphMap")
     if (constant !=null && constant.asResource.equals(R2RML.defaultGraph)) null
     else if (constant !=null) new GraphMap(constant)
@@ -65,16 +75,19 @@ object GraphMap{
   }
 }
 
-
 case class ObjectMap(const:RDFNode,col:String,temp:String,term:TermType,
     language:String,dtype:RDFDatatype,inv:String)
-  extends TermMap(const,col,temp,term){
+  extends TermMap(const,col,temp,term){  
   if (language!=null){
-    if (!coso.locales.contains(language))
+    if (!LocaleUtils.locales.contains(language))
       throw new R2rmlModelException("invalid language code: "+language)
   }
+  override val termType=if (term!=null) term else
+    if (col!=null || language!=null || dtype!=null) LiteralType
+    else IRIType
 }
-object coso{
+
+object LocaleUtils{
   val locales=Locale.getAvailableLocales.map(_.toString).toSet
 }
 

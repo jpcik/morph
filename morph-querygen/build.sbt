@@ -25,3 +25,7 @@ EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource
 unmanagedSourceDirectories in Compile <<= (scalaSource in Compile)(Seq(_))
 
 unmanagedSourceDirectories in Test <<= (scalaSource in Test)(Seq(_))
+
+publishTo := Some(Resolver.file("jpc repo",new File(Path.userHome.absolutePath+"/git/jpc-repo/repo")))
+
+publishMavenStyle := true
