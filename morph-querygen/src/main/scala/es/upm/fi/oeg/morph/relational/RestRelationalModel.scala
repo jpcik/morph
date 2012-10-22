@@ -75,7 +75,6 @@ abstract class RestResult(val resultName:String,val fieldNames:Set[String]){
 }
 
   
-  
 class RestResultSet(val records:Stream[RestResult],val metadata:Map[String,String]) extends ResultSet{
   val it=records.iterator
   var current:RestResult=_
@@ -136,14 +135,22 @@ class RestResultSet(val records:Stream[RestResult],val metadata:Map[String,Strin
 		//return metadata;*/metaData
 	}
 
+	//override def getObject[T](s:String,c:Class[T]):T=null.asInstanceOf[T]
+	//override def getObject[T](s:Int,c:Class[T]):T=null.asInstanceOf[T]
 	override def getObject(columnIndex:Int):Object=// //throws SQLException 
 	{
 		//String label = metadata.getColumnLabel(columnIndex);
 		////return getObject(label);
 		null
 		//throw new QueryException("No data for index "+columnIndex+" "+label+" "+colName);
+
+
 	}
 
+	override def getObject[T](columnLabel:String,m:Class[T]):T=null.asInstanceOf[T]// //throws SQLException {
+	override def getObject[T](columnLabel:Int,c:Class[T]):T=null.asInstanceOf[T]// //throws SQLException {
+	
+	
   override def getObject(columnLabel:String):Object={// //throws SQLException {
     current.getValue(columnLabel)
 	  /*
