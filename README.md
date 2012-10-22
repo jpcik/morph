@@ -8,11 +8,15 @@ To build morph you need:
 
 To compile it, run sbt after downloading the code:
 
+```
 >sbt
 >compile
+```
 
 To run the R2RML test cases:
 
+```
 >sbt
 >project morph-r2rml-tc
 >test
+```
