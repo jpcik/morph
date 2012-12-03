@@ -2,7 +2,7 @@ name := "morph-querygen"
 
 organization := "es.upm.fi.oeg.morph"
 
-version := "1.0.0"
+version := "1.0.1"
 
 scalaVersion := "2.9.1"
 
