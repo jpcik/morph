@@ -11,8 +11,10 @@ class JDBCRelationalModel(props:Properties) extends RelationalModel(props){
   override def query(query:String)={
     val conn=getConnection
     val st=conn.createStatement
-    st.executeQuery(query)
+    st.executeQuery(query)    
   } 
+  
+  
   private def getConnection=
     DriverManager.getConnection(sourceUrl,user,password)
 }

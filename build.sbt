@@ -14,6 +14,8 @@ libraryDependencies ++= Seq(
 
 scalacOptions += "-deprecation"
 
+publish := {}
+
 EclipseKeys.skipParents in ThisBuild := false
 
 EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource
