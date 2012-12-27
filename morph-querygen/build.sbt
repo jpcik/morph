@@ -14,9 +14,12 @@ libraryDependencies ++= Seq(
   "com.sun.jersey" % "jersey-core" % "1.8",
   "org.hsqldb" % "hsqldb" % "2.2.8",  
   "com.google.code.gson" % "gson" % "1.7.1",
+  "junit" % "junit" % "4.7" % "test",  
   "org.scalatest" % "scalatest_2.9.1" % "1.7.2" % "test",
   "org.scalacheck" % "scalacheck_2.9.1" % "1.9" % "test"
 )
+
+javacOptions ++= Seq("-source", "1.7", "-target", "1.6")
 
 scalacOptions += "-deprecation"
 
