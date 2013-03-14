@@ -36,7 +36,7 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes with L
   lazy val tMaps=triplesMaps.values//readTriplesMap(null)
   def filterBySubject(uri:String)=tMaps.filter(t=>t.subjectMap.rdfsClass.getURI.equals(uri))
   def filterByPredicate(uri:String)=tMaps.map(t=>
-    t.poMaps.filter(_.predicateIs(uri))map((_,t))).flatten
+    t.poMaps.filter(_.predicateIs(uri)).map((_,t))).flatten
   def allPredicates=tMaps.map(t=>t.poMaps.map((_,t))).flatten
      
   def this(mappingFile:String) = this{
@@ -79,6 +79,7 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes with L
       Optional("lt",sqlQuery,"query"),
       Optional("lt",sqlVersion,"version"),
       Optional("lt",tableName,"table"),
+      Optional("lt",MorphVoc.pk,"pks"),
       Optional("sMap",classProperty,"sClass"),
       Optional("sMap",column,"sCol"),
       Optional("sMap",template,"sTemp"),
@@ -90,7 +91,7 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes with L
       Optional(^("gMap",constant,"gConst"),^("sMap",graphMap,"gMap")),
       Optional(^("gMap",template,"gTemp"),^("sMap",graphMap,"gMap"))
     )
-    val vars=Array("tMap","query","version","table","sClass","sCol","sTerm","sConst",
+    val vars=Array("tMap","query","version","table","pks","sClass","sCol","sTerm","sConst",
 				   "sInv","sTemp","gConst","directGraph","gMap","gTemp","gTerm")	    	    
 	val query=SelectSparqlQuery(group,vars)
 	
@@ -116,7 +117,11 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes with L
 		val sMap=new SubjectMap(soln.res("sConst"),soln.lit("sCol"),soln.lit("sTemp"),
 		    TermType(soln.res("sTerm")),soln.res("sClass"),gMap)
 		val pos=readPOMaps(uri)
-		val lt=LogicalTable(soln.lit("table"),soln.lit("query"),soln.res("version"))
+		val pks=soln.lit("pks")
+		val pklist:Set[String]=if (pks!=null) pks.getString.split(',').toSet
+		  else Set()
+		println("pk list loaded: " +pklist)
+		val lt=LogicalTable(soln.lit("table"),soln.lit("query"),soln.res("version"),pklist)
 		val tm=new TriplesMap(uri.getURI,lt,sMap,pos.toArray)
 		triplesMaps.put(tm.uri,tm)
 		tm

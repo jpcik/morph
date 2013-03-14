@@ -1,7 +1,11 @@
 package es.upm.fi.oeg.morph.r2rml
 import es.upm.fi.oeg.morph.voc.Vocabulary
 
-//class R2RML {}
+object MorphVoc extends Vocabulary{
+  override val prefix="http://oeg-upm.net/ns/morph#"
+  val pk = property("pk")
+} 
+
 object R2RML extends Vocabulary{
   override val prefix="http://www.w3.org/ns/r2rml#"
  

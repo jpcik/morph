@@ -114,11 +114,11 @@ case class PredicateObjectMap(predicateMap:PredicateMap,objectMap:ObjectMap,
   def predicateIs(uri:String)=predicateMap.constant!=null && predicateMap.constant.asResource.getURI.equals(uri)
 }
 
-case class LogicalTable(tableName:String,sqlQuery:String,sqlVersion:RDFNode){
+case class LogicalTable(tableName:String,sqlQuery:String,sqlVersion:RDFNode,pk:Set[String]){
   if (sqlVersion!=null && !exists(sqlVersion.asResource))
     throw new R2rmlModelException("Unsupported SQL Version: "+sqlVersion,null)
-  def this(tableName:String)=this(tableName,null,null)
-  def exists(version:Resource)= {
+  def this(tableName:String)=this(tableName,null,null,null)
+  private def exists(version:Resource)= {
    val vers =R2RML.SqlVersion.versions
    !vers.filter( _.getURI.equals(version.getURI)).isEmpty 
   }
