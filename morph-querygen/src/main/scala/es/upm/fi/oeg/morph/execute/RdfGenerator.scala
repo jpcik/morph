@@ -12,7 +12,6 @@ import java.sql.SQLSyntaxErrorException
 import com.hp.hpl.jena.rdf.model.Resource
 import com.hp.hpl.jena.sparql.core.DatasetGraph
 import es.upm.fi.oeg.morph.r2rml.GraphMap
-import com.hp.hpl.jena.query.DataSource
 import com.hp.hpl.jena.rdf.model.Model
 import com.hp.hpl.jena.rdf.model.Property
 import com.hp.hpl.jena.datatypes.RDFDatatype
@@ -20,6 +19,7 @@ import es.upm.fi.oeg.morph.r2rml.PredicateObjectMap
 import es.upm.fi.oeg.morph.r2rml.LiteralType
 import es.upm.fi.oeg.morph.r2rml.IRIType
 import java.sql.SQLException
+import java.sql.ResultSet
 
 class RelationalQueryException(msg:String,e:Throwable) extends Exception(msg,e)
 
@@ -54,6 +54,56 @@ class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel) {
 	  else
 	    m.add(subj,p,m.createResource(ob.toString))
   }
+
+  def generate(res:ResultSet)= {
+    val m = ModelFactory.createDefaultModel
+	val ds = DatasetFactory.create(m) 
+    if (r2rml.tMaps.isEmpty)
+      throw new Exception("No valid R2RML mappings in the provided document.")
+    val queries=r2rml.tMaps.foreach{tMap=>            
+      val tgen=new TripleGenerator(ds,tMap,baseUri)        
+      iterateGenerate(res, tgen)
+    }
+    ds
+    
+  }
+
+  private def iterateGenerate(res:ResultSet,tgen:TripleGenerator)={
+    val ds=tgen.d
+     val tMap=tgen.tm
+     while (res.next){        
+       
+        val subj = 
+          if (relational.postProc) tgen.genSubjectPostProc(res)
+          else tgen.genSubject(res)
+        val tMapModel = tgen.graph(res,tMap.subjectMap.graphMap)
+          
+        if (subj!=null){				
+          if (tgen.genRdfType!=null)
+            tMapModel.add(subj,RDF.typeProp,tgen.genRdfType)
+												
+		  tMap.poMaps.foreach{prop=>
+		    val parentTmap=if (prop.refObjectMap!=null) 
+		      r2rml.triplesMaps(prop.refObjectMap.parentTriplesMap)
+		      else null
+		    val propIns = POGenerator(ds,prop,parentTmap,baseUri)
+		    val po=
+		      if (relational.postProc) propIns.generate(res)
+		      else propIns.generate(null, res)
+		    println("data"+po)
+		    addTriple(tMapModel,subj,propIns.genPredicate,po,prop)
+		    if (prop.graphMap!=null){
+		      println("graph:" +prop.graphMap)
+		      val poModel=tgen.graph(res,prop.graphMap)
+		      addTriple(poModel,subj,propIns.genPredicate,po,prop)
+		    }
+		  }
+        }
+        
+     }
+    
+  }
+  
   
   def generate={
     val m = ModelFactory.createDefaultModel
@@ -71,30 +121,7 @@ class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel) {
       } 
       
       val tgen=new TripleGenerator(ds,tMap,baseUri)
-      while (res.next){        
-        val subj = tgen.genSubject(res)
-        val tMapModel = tgen.graph(res,tMap.subjectMap.graphMap)
-          
-        if (subj!=null){				
-          if (tgen.genRdfType!=null)
-            tMapModel.add(subj,RDF.typeProp,tgen.genRdfType)
-												
-		  tMap.poMaps.foreach{prop=>
-		    val parentTmap=if (prop.refObjectMap!=null) 
-		      r2rml.triplesMaps(prop.refObjectMap.parentTriplesMap)
-		      else null
-		    val propIns = POGenerator(ds,prop,parentTmap,baseUri)
-		    val po=propIns.generate(null,res)
-		    println("data"+po)
-		    addTriple(tMapModel,subj,propIns.genPredicate,po,prop)
-		    if (prop.graphMap!=null){
-		      val poModel=tgen.graph(res,prop.graphMap)
-		      addTriple(poModel,subj,propIns.genPredicate,po,prop)
-		    }
-		  }
-        }
-        
-      }
+      iterateGenerate(res, tgen)
     }
     ds
   }

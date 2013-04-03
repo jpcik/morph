@@ -1,6 +1,5 @@
 package es.upm.fi.oeg.morph.execute
 import es.upm.fi.oeg.morph.r2rml.TriplesMap
-import com.hp.hpl.jena.query.DataSource
 import com.hp.hpl.jena.rdf.model.AnonId
 import es.upm.fi.oeg.morph.r2rml.R2rmlUtils._
 import java.sql.ResultSet
@@ -19,8 +18,9 @@ import es.upm.fi.oeg.siq.tools.XsdTypes
 import es.upm.fi.oeg.siq.tools.URLTools
 import es.upm.fi.oeg.morph.r2rml.IRIType
 import es.upm.fi.oeg.morph.r2rml.LiteralType
+import com.hp.hpl.jena.query.Dataset
 
-case class TripleGenerator(d:DataSource,tm:TriplesMap, baseUri:String){
+case class TripleGenerator(d:Dataset,tm:TriplesMap, baseUri:String){
   def genModel=d.getDefaultModel
    
   def slugify(str: String): String = {
@@ -52,6 +52,39 @@ case class TripleGenerator(d:DataSource,tm:TriplesMap, baseUri:String){
     }
   }
 
+ def genSubjectPostProc(rs:ResultSet)={
+    val subj=tm.subjectMap
+    
+    val id=
+    if (subj.template!=null){
+      val vars=R2rmlUtils.extractTemplateVals(subj.template)
+	  val result=R2rmlUtils.replaceTemplate(subj.template,vars.map(v=>rs.getString(v)))
+	  result
+    }
+    else if (subj.column!=null)
+      rs.getString(subj.column)
+    else
+      subj.constant.toString
+    //val id=rs.getString(col)
+    if (id==null) null
+    else {
+      val ttype=subj.termType
+      if (ttype.isIRI){
+        val value=
+          if (subj.template!=null) URLTools.encode(id)
+          else id
+        val finalval=if (URLTools.isAbsIRI(value))
+          value else baseUri+value
+        genModel.createResource(finalval)
+      }
+      else if (ttype.isBlank)
+		genModel.createResource(new AnonId(URLTools.encode(id)))
+	  else throw new Exception("Invalid Term Type "+ttype)
+    }
+  }
+
+  
+  
   def genRdfType()={
 	tm.subjectMap.rdfsClass		
   } 
@@ -83,7 +116,7 @@ case class TripleGenerator(d:DataSource,tm:TriplesMap, baseUri:String){
 
 }
 
-case class POGenerator(ds:DataSource,poMap:PredicateObjectMap,parentTMap:TriplesMap,baseUri:String){
+case class POGenerator(ds:Dataset,poMap:PredicateObjectMap,parentTMap:TriplesMap,baseUri:String){
   def genPredicate={
     ResourceFactory.createProperty(
       poMap.predicateMap.constant.asResource.getURI)
@@ -113,6 +146,34 @@ case class POGenerator(ds:DataSource,poMap:PredicateObjectMap,parentTMap:Triples
 		(rs.getString(poMap.id),datatype)		
 	  else				
 		(poMap.objectMap.constant,null)
+    }
+  }
+
+  def generate(rs:ResultSet)={
+	//RefObjectMap
+    if (poMap.refObjectMap!=null){
+	  val obj=new TripleGenerator(ds,parentTMap,baseUri).genSubjectPostProc(rs)
+	  (obj,null)
+	}
+    else {
+	  val datatype = 
+        if (poMap.objectMap.termType == IRIType) null   
+        else if (poMap.objectMap.dtype!=null) poMap.objectMap.dtype
+        else if (poMap.objectMap.column!=null){
+		  val typeInResult=rs.getMetaData.getColumnType(rs.findColumn(poMap.objectMap.column))
+		  XsdTypes.sqlType2XsdType(typeInResult)
+	    }
+	    else null
+     
+	  if (poMap.objectMap.template!=null){
+	    val vars=R2rmlUtils.extractTemplateVals(poMap.objectMap.template)
+	    val result=R2rmlUtils.replaceTemplate(poMap.objectMap.template,vars.map(v=>rs.getString(v)))
+	    (result,datatype)
+	  }
+	  else if (poMap.objectMap.column!=null)
+	    (rs.getString(poMap.objectMap.column),datatype)
+	  else 
+	    (poMap.objectMap.constant,null)
     }
   }
 }

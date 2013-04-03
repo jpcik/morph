@@ -33,6 +33,7 @@ class BikeGenerationTest extends JUnitSuite with ShouldMatchersForJUnit with Che
     //r2r.configure(props);
     val relat:RelationalModel=new RestRelationalModel(props)
     val reader=R2rmlReader("mappings/bikes.ttl")
+    
     val ds=new RdfGenerator(reader,relat).generate
     ds.getDefaultModel.write(System.out,RDFFormat.N3)
   }

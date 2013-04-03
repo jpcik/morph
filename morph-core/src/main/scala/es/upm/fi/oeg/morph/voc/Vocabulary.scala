@@ -1,6 +1,6 @@
 package es.upm.fi.oeg.morph.voc
 import com.hp.hpl.jena.rdf.model.ResourceFactory
-
+import scala.language.implicitConversions
 
 abstract class Vocabulary {
   val prefix:String
@@ -17,7 +17,8 @@ object RDF extends Vocabulary{
   val a=typeProp
 }
 
-object RDFFormat extends Enumeration("TURTLE","N3"){
+
+object RDFFormat extends Enumeration{
   type RDFFormat=Value
   val TTL,N3=Value
   implicit def getString(v:RDFFormat.Value)=v.toString

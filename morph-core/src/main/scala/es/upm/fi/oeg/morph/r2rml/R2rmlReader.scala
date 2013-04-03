@@ -12,7 +12,6 @@ import es.upm.fi.oeg.morph.voc.RDFFormat
 import es.upm.fi.oeg.morph.r2rml.R2RML._
 import com.hp.hpl.jena.n3.turtle.TurtleParseException
 import org.openjena.riot.RiotException
-import com.weiglewilczek.slf4s.Logging
 import es.upm.fi.oeg.siq.sparql.Sparql
 import com.hp.hpl.jena.query.Query
 import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock
@@ -27,8 +26,11 @@ import com.hp.hpl.jena.graph.Node
 import com.hp.hpl.jena.rdf.model.Resource
 import com.hp.hpl.jena.shared.JenaException
 import java.net.URL
+import org.slf4j.LoggerFactory
 
-class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes with Logging {  
+class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes { 
+  private val logger= LoggerFactory.getLogger(this.getClass)
+
   private val model=ModelFactory.createDefaultModel
   val triplesMaps=new collection.mutable.HashMap[String,TriplesMap]
   read(mappingStream)
@@ -48,7 +50,7 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes with L
   }
     	
   private def read(in:InputStream){ 
-	val arp:RDFReader= model.getReader(RDFFormat.TTL)
+	val arp:RDFReader= model.getReader(RDFFormat.TTL.toString)
 	try arp.read(model,in,"")
 	catch {
 	  case e:TurtleParseException=>
@@ -60,7 +62,7 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes with L
 	}
 	in.close
 	readTriplesMap(null)
-	model.write(System.out,RDFFormat.TTL)	
+	model.write(System.out,RDFFormat.TTL.toString)	
   }
 
   private def readTriplesMap(triplesMapUri:Resource):Seq[TriplesMap]={

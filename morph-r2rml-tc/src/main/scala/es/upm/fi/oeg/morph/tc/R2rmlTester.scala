@@ -4,9 +4,6 @@ import java.io.InputStream
 import java.util.Properties
 import scala.collection.JavaConversions._
 import scala.io.Source
-import org.openjena.riot.Lang
-import org.openjena.riot.RiotLoader
-import org.openjena.riot.RiotWriter
 import com.hp.hpl.jena.graph.Graph
 import com.hp.hpl.jena.sparql.core.DatasetGraph
 import es.upm.fi.oeg.morph.execute.RdfGenerator
@@ -15,6 +12,10 @@ import es.upm.fi.oeg.morph.relational.JDBCRelationalModel
 import es.upm.fi.oeg.siq.sparql.Sparql
 import java.io.FileWriter
 import java.io.FileOutputStream
+import org.apache.jena.riot.RiotReader
+import org.apache.jena.riot.RDFDataMgr
+import org.apache.jena.riot.RiotWriter
+import org.apache.jena.riot.Lang
 
 class SuiteTester(testPath:String,val name:String) extends Sparql{
   val props=load(getClass.getClassLoader().getResourceAsStream("config.properties"))
@@ -50,11 +51,11 @@ class SuiteTester(testPath:String,val name:String) extends Sparql{
     println("output: "+tc.output)
     
     if (tc.output!=null) {
-      val output=RiotLoader.load(testPath+"/"+name+"/"+tc.output, Lang.NQUADS)
-      RiotWriter.writeNQuads(System.out,output)      
+      val output=RDFDataMgr.loadDataset(testPath+"/"+name+"/"+tc.output, Lang.NQUADS)
+      RiotWriter.writeNQuads(System.out,output.asDatasetGraph())      
       //output.getReader("N-Quads").read(output,new FileInputStream(testPath+"/"+name+"/"+tc.output),"")
       //output.write(System.out,RDFFormat.N3)      
-      val compareEquals=compare(output,ds.asDatasetGraph)
+      val compareEquals=compare(output.asDatasetGraph(),ds.asDatasetGraph)
       println("comparing "+compareEquals)
       if (!compareEquals)
         throw new Exception("Test results do not match expected triple dataset.")

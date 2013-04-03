@@ -2,7 +2,7 @@ package es.upm.fi.oeg.morph.relational
 import java.util.Properties
 import java.sql.DriverManager
 
-class JDBCRelationalModel(props:Properties) extends RelationalModel(props){
+class JDBCRelationalModel(props:Properties) extends RelationalModel(props,false){
   val driver=props.getProperty("jdbc.driver")
   Class.forName(driver).newInstance
   val sourceUrl=props.getProperty("jdbc.source.url")

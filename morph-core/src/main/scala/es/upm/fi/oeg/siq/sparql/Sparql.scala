@@ -14,7 +14,7 @@ import com.hp.hpl.jena.rdf.model.Literal
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype._
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
 import com.hp.hpl.jena.sparql.syntax.ElementUnion
-
+import scala.language.implicitConversions
 trait Sparql{
   implicit def str2Node(s:String):Node=Node.createVariable(s)
   implicit def res2Node(r:Resource):Node=r.asNode
