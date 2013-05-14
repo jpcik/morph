@@ -2,7 +2,7 @@ package es.upm.fi.oeg.morph.tc
 import org.junit.Before
 import org.junit.Test
 import org.junit.Ignore
-import com.google.gson.Gson
+//import com.google.gson.Gson
 
 class D014Test extends R2RMLTest("D014-3tables1primarykey1foreignkey") {
 
@@ -15,9 +15,9 @@ case class BindingValue()
   @Before def initialize() {
     val bin=(1 to 10).map(i=>List(("mata",i+"gato"),("pata",i+"tato")).toMap).toArray
     val sp=SparqlBindings(Head(Array("rata","bata"),Array()),bin)
-    val json=new Gson().toJson(bin)
+    //val json=new Gson().toJson(bin)
     println(bin)
-    println(json)
+    //println(json)
 
   }
    

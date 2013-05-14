@@ -2,10 +2,10 @@ package es.upm.fi.oeg.morph.relational
 import java.util.Properties
 import java.sql.ResultSet
 import java.sql.ResultSetMetaData
-import com.sun.jersey.api.client.Client
-import com.sun.jersey.core.util.MultivaluedMapImpl
-import com.sun.jersey.api.client.UniformInterfaceException
-import com.google.gson.Gson
+//import com.sun.jersey.api.client.Client
+//import com.sun.jersey.core.util.MultivaluedMapImpl
+//import com.sun.jersey.api.client.UniformInterfaceException
+//import com.google.gson.Gson
 import collection.JavaConversions._
 import javax.sql.RowSetMetaData
 import javax.sql.rowset.RowSetMetaDataImpl
