@@ -1,6 +1,11 @@
 morph
 =====
 
+**If you don't care about compiling you can use morph** 
+as in this sample Java project: https://github.com/jpcik/morph-starter
+using the library through Maven or Sbt.
+
+
 To build morph you need:
 
 * jvm7
@@ -21,3 +26,4 @@ To run the R2RML test cases:
 >project morph-r2rml-tc
 >test
 ```
+
