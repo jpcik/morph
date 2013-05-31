@@ -6,26 +6,26 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @base <http://mappingpedia.org/rdb2rdf/r2rml/tc/> .
 
-<TriplesMap2> a rr:TriplesMap;
-  rr:logicalTable [rr:tableName "uristations"];
-  rr:subjectMap [rr:template "http://oeg-upm.net#instant/{timed}";
-                 rr:class ex:Instant;  rr:graph ex:DeptGraph;];
-  rr:predicateObjectMap [rr:predicateMap [rr:constant ex:inXSDDateTime];
-                         rr:objectMap [rr:column "timed"; rr:datatype xsd:dateTime]];
-.
-<TriplesMap1>
-    a rr:TriplesMaep;
+
+<TriplesMap1> a rr:TriplesMap;
     rr:logicalTable [ rr:tableName "uristations" ];
     rr:subjectMap [ rr:template "http://oeg-upm.net#observation/{timestamp}";
-                    rr:class ex:Observation; rr:graphMap [ rr:graph ex:DeptGraph; ];
-                    rr:inverseExpression "{deptno} = substr({deptId},length('Department')+1)"];
+                    rr:class ex:Observation; rr:graphMap [ rr:constant ex:DeptGraph; ];];
     rr:predicateObjectMap [ 
       rr:predicateMap [ rr:constant dept:bikes ]; 
       rr:objectMap    [ rr:column "bikes"; rr:datatype xsd:positiveInteger ]
     ];
     rr:predicateObjectMap [ 
       rr:predicateMap [ rr:constant dept:time ]; 
-      rr:objectMap    [ rr:parentTriplesMap <TriplesMap2>]
+      rr:objectMap    [ rr:template "http://oeg-upm.net#instant/{timestamp}"]
     ];
         
+.
+
+<TriplesMap2> a rr:TriplesMap;
+  rr:logicalTable [rr:tableName "uristations"];
+  rr:subjectMap [rr:template "http://oeg-upm.net#instant/{timestamp}";
+                 rr:class ex:Instant;  rr:graph ex:DeptGraph;];
+  rr:predicateObjectMap [rr:predicateMap [rr:constant ex:inXSDDateTime];
+                         rr:objectMap [rr:column "timestamp"; rr:datatype xsd:dateTime]];
 .

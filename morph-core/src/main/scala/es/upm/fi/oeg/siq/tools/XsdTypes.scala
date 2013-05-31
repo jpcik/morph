@@ -5,6 +5,7 @@ import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
 object XsdTypes {
   def sqlType2XsdType(sqlType:Int)=sqlType match{
     case Types.NVARCHAR=>XSDDatatype.XSDstring
+    case Types.BOOLEAN=>XSDDatatype.XSDboolean
     case Types.VARCHAR=> XSDDatatype.XSDstring
     case Types.BIGINT=> XSDDatatype.XSDinteger
     case Types.INTEGER=> XSDDatatype.XSDinteger

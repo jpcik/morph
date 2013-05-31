@@ -25,9 +25,7 @@ class D012Test extends R2RMLTest("D012-2tables2duplicates0nulls") {
   }
   @Test def testTC012d{
 	val tc=suit.getTc("R2RMLTC0012d")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
-	dg.getDefaultGraph.size should be (4)
+	println(intercept[Exception]{val ds=suit.testTc(tc.get)})
   }
 
   @Test def testTC012e{

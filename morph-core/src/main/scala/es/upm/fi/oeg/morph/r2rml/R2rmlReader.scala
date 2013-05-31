@@ -27,24 +27,25 @@ import com.hp.hpl.jena.rdf.model.Resource
 import com.hp.hpl.jena.shared.JenaException
 import java.net.URL
 import org.slf4j.LoggerFactory
+import scala.collection.mutable.ArrayBuffer
 
 class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes { 
   private val logger= LoggerFactory.getLogger(this.getClass)
 
   private val model=ModelFactory.createDefaultModel
   val triplesMaps=new collection.mutable.HashMap[String,TriplesMap]
+  private val tempTmaps=new ArrayBuffer[TriplesMap]() 
   read(mappingStream)
   
-  lazy val tMaps=triplesMaps.values//readTriplesMap(null)
-  def filterBySubject(uri:String)=tMaps.filter(t=>t.subjectMap.rdfsClass.getURI.equals(uri))
+  lazy val tMaps=triplesMaps.values
+  def filterBySubject(uri:String)=tMaps.filter(t=>t.subjectMap.classes.exists(_.getURI.equals(uri)))
   def filterByPredicate(uri:String)=tMaps.map(t=>
     t.poMaps.filter(_.predicateIs(uri)).map((_,t))).flatten
   def allPredicates=tMaps.map(t=>t.poMaps.map((_,t))).flatten
      
   def this(mappingFile:String) = this{
     val uri=new URI(mappingFile)
-    val fis:InputStream =// try
-      R2RML.getClass.getClassLoader.getResourceAsStream(mappingFile)
+    val fis:InputStream =R2RML.getClass.getClassLoader.getResourceAsStream(mappingFile)
     if (fis==null) new FileInputStream(mappingFile)
     else fis
   }
@@ -62,7 +63,8 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes {
 	}
 	in.close
 	readTriplesMap(null)
-	model.write(System.out,RDFFormat.TTL.toString)	
+	
+	//model.write(System.out,RDFFormat.TTL.toString)	
   }
 
   private def readTriplesMap(triplesMapUri:Resource):Seq[TriplesMap]={
@@ -82,7 +84,6 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes {
       Optional("lt",sqlVersion,"version"),
       Optional("lt",tableName,"table"),
       Optional("lt",MorphVoc.pk,"pks"),
-      Optional("sMap",classProperty,"sClass"),
       Optional("sMap",column,"sCol"),
       Optional("sMap",template,"sTemp"),
       Optional("sMap",termType,"sTerm"),
@@ -111,27 +112,31 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes {
 		else triplesMapUri
 
 	    logger.debug("Triples map found: "+uri);
+		//logger.debug(soln.res("sClass").getLocalName())
 		   		
 		if ((soln.get("gConst")==null && soln.get("gTemp")==null) && soln.get("gMap")!=null)
 		  throw new R2rmlModelException("graphMap without constant graph or template IRI not allowed")
 		val constgraph=if (soln.get("gConst")!=null) soln.res("gConst") else soln.res("directGraph")
 		val gMap=GraphMap(constgraph,null,soln.lit("gTemp"),TermType(soln.res("gTerm")))
+		val classes=readSubjectClasses(uri)
 		val sMap=new SubjectMap(soln.res("sConst"),soln.lit("sCol"),soln.lit("sTemp"),
-		    TermType(soln.res("sTerm")),soln.res("sClass"),gMap)
+		    TermType(soln.res("sTerm")),classes,gMap)
+		if (triplesMaps.contains(uri.toString) && !triplesMaps(uri.toString).subjectMap.equals(sMap)) 
+		  throw new R2rmlModelException("TriplesMap duplicated. SubjectMap: "+sMap)
 		val pos=readPOMaps(uri)
 		val pks=soln.lit("pks")
-		val pklist:Set[String]=if (pks!=null) pks.getString.split(',').toSet
-		  else Set()
-		println("pk list loaded: " +pklist)
+		val pklist:Set[String]=if (pks!=null) pks.getString.split(',').toSet else Set()
+		logger.trace("pk list loaded: " +pklist)
 		val lt=LogicalTable(soln.lit("table"),soln.lit("query"),soln.res("version"),pklist)
 		val tm=new TriplesMap(uri.getURI,lt,sMap,pos.toArray)
 		triplesMaps.put(tm.uri,tm)
+		//tempTmaps+=tm
 		tm
-	  }
-    }	
+	  }	  
+	}
 	rs.toList	        
   }
-  
+    
   
   private def readPOMaps(tMapUri:Node)={
     val vars=Array("predicate","pCol","oConst","oCol","oTemp","odType","oTerm","lang",
@@ -165,7 +170,7 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes {
     val qexec = QueryExecutionFactory.create(query.serialize, model)
     val results = qexec.execSelect
     results.map{soln=>      
-      println( soln.varNames.map(v=>v+"="+soln.get(v)).mkString("--"))
+      logger.trace( soln.varNames.map(v=>v+"="+soln.get(v)).mkString("--"))
       val predicate=if (soln.res("predicate")!=null) soln.res("predicate")
         else soln.res("directPredicate")
       val p=PredicateMap(predicate,soln.lit("pCol"),null)
@@ -188,7 +193,20 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes {
       
     }.toList
   }
-         
+
+  
+  private def readSubjectClasses(tMapUri:Node)={
+    val vars=Array("sclass")
+    val group=Group(
+	  ^(tMapUri,RDF.a,R2RML.TriplesMap),
+      ^(tMapUri,subjectMap,"sMap"),
+      ^("sMap",classProperty,"sclass"))
+          
+    val query=SelectSparqlQuery(group,vars)
+    logger.debug("Query subject classes: "+query.serialize);
+    val qexec = QueryExecutionFactory.create(query.serialize, model)     
+    qexec.execSelect.map{soln=>soln.res("sclass")}.toSeq
+  } 
 }
 
 object R2rmlReader{

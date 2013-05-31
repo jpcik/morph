@@ -42,6 +42,7 @@ import com.hp.hpl.jena.update.UpdateExecutionFactory
 import com.hp.hpl.jena.sparql.modify.UpdateProcessRemote
 import java.io.StringWriter
 import collection.JavaConversions._
+import es.upm.fi.oeg.morph.stack.wund.WundergroundSpout
 
 class WordCountDemo {
 
@@ -76,7 +77,7 @@ ds.getNamedModel(ds.listNames.toArray.head).write(sw,RDFFormat.TTL)
   
   def wundTopology(ids:Array[String])={
     val builder=new TopologyBuilder
-    val printer = new RdfExportBolt
+    val printer = new ExportRdfBolt(null)
     val b=builder.setBolt("print",printer,6)
     val idsp=ids.grouped(2).toArray
     idsp.zipWithIndex.foreach{id=>

@@ -4,12 +4,11 @@ organization := "es.upm.fi.oeg.morph"
 
 version := "1.0.3"
 
-scalaVersion := "2.9.1"
+scalaVersion := "2.10.1"
 
 crossPaths := false
 
 libraryDependencies ++= Seq(
-  "com.hp.hpl.jena" % "jena" % "2.6.4"
 )
 
 scalacOptions += "-deprecation"

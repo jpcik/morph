@@ -20,6 +20,9 @@ import es.upm.fi.oeg.morph.r2rml.LiteralType
 import es.upm.fi.oeg.morph.r2rml.IRIType
 import java.sql.SQLException
 import java.sql.ResultSet
+import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import es.upm.fi.oeg.siq.tools.URLTools
 
 class RelationalQueryException(msg:String,e:Throwable) extends Exception(msg,e)
 
@@ -27,10 +30,13 @@ class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel) {
   val baseUri="http://example.com/base/"
   type GeneratedTriple=(Resource,Property,Object,RDFDatatype)
   
-  
+  val df = new DecimalFormat("0.0##E0");  
+  val datef=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+
   
   private def addTriple(m:Model,subj:Resource,p:Property,obj:(Object,RDFDatatype),poMap:PredicateObjectMap)={
     val (ob,datatype)=obj
+    println("more data "+obj)
     val oMap=poMap.objectMap
 	if (ob!=null)
 	  if (ob.isInstanceOf[Resource])
@@ -45,6 +51,10 @@ class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel) {
 		m.add(subj,p,m.createResource(ob.toString))	   
 	  else if (oMap.column!=null && datatype!=null && datatype==XSDDatatype.XSDstring)
 		m.add(subj,p,ob.toString,oMap.language)	   
+	  else if (oMap.column!=null && datatype!=null && datatype==XSDDatatype.XSDdouble)
+		m.add(subj,p,df.format(ob),datatype)	   
+	  else if (oMap.column!=null && datatype!=null && datatype==XSDDatatype.XSDdateTime)
+    	m.add(subj,p,datef.format(ob),datatype)	   
 	  else if (oMap.column!=null && datatype!=null && datatype!=XSDDatatype.XSDstring)
 		m.add(subj,p,ob.toString,datatype)	   
 	  else if (oMap.constant!=null && oMap.termType.equals(LiteralType))
@@ -60,8 +70,10 @@ class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel) {
 	val ds = DatasetFactory.create(m) 
     if (r2rml.tMaps.isEmpty)
       throw new Exception("No valid R2RML mappings in the provided document.")
-    val queries=r2rml.tMaps.foreach{tMap=>            
-      val tgen=new TripleGenerator(ds,tMap,baseUri)        
+    val queries=r2rml.tMaps.foreach{tMap=>
+      println("now this one "+tMap.uri)
+      val tgen=new TripleGenerator(ds,tMap,baseUri) 
+      res.beforeFirst
       iterateGenerate(res, tgen)
     }
     ds
@@ -79,8 +91,9 @@ class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel) {
         val tMapModel = tgen.graph(res,tMap.subjectMap.graphMap)
           
         if (subj!=null){				
-          if (tgen.genRdfType!=null)
-            tMapModel.add(subj,RDF.typeProp,tgen.genRdfType)
+          if (tgen.genRdfTypes!=null)
+            tgen.genRdfTypes.foreach{typ=>
+            tMapModel.add(subj,RDF.typeProp,typ)}
 												
 		  tMap.poMaps.foreach{prop=>
 		    val parentTmap=if (prop.refObjectMap!=null) 

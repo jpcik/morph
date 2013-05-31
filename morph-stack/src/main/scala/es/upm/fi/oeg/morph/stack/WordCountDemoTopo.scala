@@ -57,7 +57,7 @@ object WordCountDemoTopo{
     if (args.length==0) {
       val drpc = new LocalDRPC
       val cluster = new LocalCluster
-      
+            
       conf.setNumWorkers(2);
 
       cluster.submitTopology("wund-topo",conf,wc.wundTopology(ids))
@@ -68,8 +68,8 @@ object WordCountDemoTopo{
          Thread.sleep(1000)
       }}
     } else {
-      conf.setNumWorkers(3);
-      StormSubmitter.submitTopology(args(0), conf, wc.buildTopology(null))
+      //conf.setNumWorkers(3);
+      //StormSubmitter.submitTopology(args(0), conf, wc.buildTopology(null))
     }
   }
 }

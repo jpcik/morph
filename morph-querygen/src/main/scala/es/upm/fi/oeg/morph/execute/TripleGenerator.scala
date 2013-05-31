@@ -19,8 +19,30 @@ import es.upm.fi.oeg.siq.tools.URLTools
 import es.upm.fi.oeg.morph.r2rml.IRIType
 import es.upm.fi.oeg.morph.r2rml.LiteralType
 import com.hp.hpl.jena.query.Dataset
+import es.upm.fi.oeg.morph.r2rml.SubjectMap
+import es.upm.fi.oeg.morph.r2rml.TermMap
+import com.hp.hpl.jena.rdf.model.Model
 
-case class TripleGenerator(d:Dataset,tm:TriplesMap, baseUri:String){
+trait MapGenerator{
+  protected def createIriOrBNode(m:Model,value:String,map:TermMap,baseUri:String)={
+    if (map.termType.isIRI){
+      val valueenc=
+        if (map.template!=null && map.template.startsWith("{")) URLTools.encodeAll(value)
+        else if (map.template!=null) URLTools.encode(value)
+        else value
+      val finalval=
+        if (URLTools.isAbsIRI(valueenc)) valueenc 
+        else baseUri+valueenc
+      m.createResource(finalval)
+    }
+    else if (map.termType.isBlank)
+      m.createResource(new AnonId(URLTools.encode(value)))
+    else throw new Exception("Invalid Term Type "+map.termType)
+  }
+   
+}
+
+case class TripleGenerator(d:Dataset,tm:TriplesMap, baseUri:String) extends MapGenerator{
   def genModel=d.getDefaultModel
    
   def slugify(str: String): String = {
@@ -37,18 +59,7 @@ case class TripleGenerator(d:Dataset,tm:TriplesMap, baseUri:String){
     val id=rs.getString(col)
     if (id==null) null
     else {
-      val ttype=subj.termType
-      if (ttype.isIRI){
-        val value=
-          if (subj.template!=null) URLTools.encode(id)
-          else id
-        val finalval=if (URLTools.isAbsIRI(value))
-          value else baseUri+value
-        genModel.createResource(finalval)
-      }
-      else if (ttype.isBlank)
-		genModel.createResource(new AnonId(URLTools.encode(id)))
-	  else throw new Exception("Invalid Term Type "+ttype)
+      createIriOrBNode(genModel,id, subj,baseUri)
     }
   }
 
@@ -67,26 +78,11 @@ case class TripleGenerator(d:Dataset,tm:TriplesMap, baseUri:String){
       subj.constant.toString
     //val id=rs.getString(col)
     if (id==null) null
-    else {
-      val ttype=subj.termType
-      if (ttype.isIRI){
-        val value=
-          if (subj.template!=null) URLTools.encode(id)
-          else id
-        val finalval=if (URLTools.isAbsIRI(value))
-          value else baseUri+value
-        genModel.createResource(finalval)
-      }
-      else if (ttype.isBlank)
-		genModel.createResource(new AnonId(URLTools.encode(id)))
-	  else throw new Exception("Invalid Term Type "+ttype)
-    }
+    else  createIriOrBNode(genModel,id, subj,baseUri)
   }
 
-  
-  
-  def genRdfType()={
-	tm.subjectMap.rdfsClass		
+  def genRdfTypes()={
+	tm.subjectMap.classes
   } 
   
   def genGraph(rs:ResultSet)={
@@ -116,7 +112,7 @@ case class TripleGenerator(d:Dataset,tm:TriplesMap, baseUri:String){
 
 }
 
-case class POGenerator(ds:Dataset,poMap:PredicateObjectMap,parentTMap:TriplesMap,baseUri:String){
+case class POGenerator(ds:Dataset,poMap:PredicateObjectMap,parentTMap:TriplesMap,baseUri:String) extends MapGenerator{
   def genPredicate={
     ResourceFactory.createProperty(
       poMap.predicateMap.constant.asResource.getURI)
@@ -139,9 +135,10 @@ case class POGenerator(ds:Dataset,poMap:PredicateObjectMap,parentTMap:TriplesMap
 	      poMap.objectMap.dtype
 		else XsdTypes.sqlType2XsdType(typeInResult)	
 	  if (poMap.objectMap.termType == IRIType)
-	    (rs.getString(poMap.id),null)
+	    //(rs.getString(poMap.id),null)
+	    (createIriOrBNode(ds.getDefaultModel, rs.getString(poMap.id), poMap.objectMap, baseUri),null)
 	  if (poMap.objectMap.termType == LiteralType)
-	    (rs.getString(poMap.id),datatype)
+	    (rs.getObject(poMap.id),datatype)
 	  else if (poMap.objectMap.constant==null)
 		(rs.getString(poMap.id),datatype)		
 	  else				

@@ -4,7 +4,6 @@ import org.junit.Test
 import es.upm.fi.oeg.morph.execute.RelationalQueryException
 
 class D002Test extends R2RMLTest("D002-1table2columns1row") {
-
   @Before def initialize() {}
   
   @Test def testTC0002a{

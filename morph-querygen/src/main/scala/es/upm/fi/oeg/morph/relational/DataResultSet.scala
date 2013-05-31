@@ -5,9 +5,9 @@ import javax.sql.RowSetMetaData
 import java.sql.ResultSetMetaData
 import java.sql.Types
 
-class DataResultSet(val records:Stream[Array[Object]], 
+class DataResultSet(val records:Seq[Array[Object]], 
     val metadata: Map[String, String],queryVars:Array[String]) extends BaseResultSet {
-  private val it = records.iterator
+  private var it = records.iterator
   private var current: Seq[Object] = _
   private val logger = LoggerFactory.getLogger(this.getClass)
   
@@ -19,6 +19,7 @@ class DataResultSet(val records:Stream[Array[Object]],
     } else false
   }
 
+  override def beforeFirst{it=records.iterator}
   override def close {}
   override def getHoldability():Int = 0
   override def isClosed():Boolean = false

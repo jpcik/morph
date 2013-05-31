@@ -14,7 +14,7 @@ import java.io.FileOutputStream
 import java.io.FileWriter
 
 abstract class R2RMLTest(val name:String) extends JUnitSuite with ShouldMatchersForJUnit with Checkers {
-  val testPath="test-suite"
+  val testPath="../test-suite"
   val suit=new SuiteTester(testPath,name)
   
   def downloadSuite(){

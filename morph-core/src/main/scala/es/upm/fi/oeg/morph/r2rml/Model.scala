@@ -45,17 +45,17 @@ abstract class TermMap(val constant:RDFNode,val column:String,
 }
     
 case class SubjectMap(const:RDFNode,col:String,temp:String,term:TermType,
-  rdfsClass:Resource,graphMap:GraphMap) extends TermMap(const,col,temp,term){
+  classes:Seq[Resource],graphMap:GraphMap) extends TermMap(const,col,temp,term){
   override val termType=if (term==null) IRIType else term
   if (termType.equals(LiteralType)) 
     throw new R2rmlModelException("Invalid Term Type sor SubjectMap: "+termType)
   if (allnull(constant,column,template))
     throw new R2rmlModelException("SubjectMap template, column or constant must be defined ")
   
-  def this(constant:RDFNode,rdfsClass:Resource,graphMap:GraphMap)=
-    this(constant,null,null,IRIType,rdfsClass,graphMap)
-  def this(template:String,termType:TermType,rdfsClass:Resource,graphMap:GraphMap)=
-    this(null,null,template,termType,rdfsClass,graphMap)  
+  def this(constant:RDFNode,classes:Seq[Resource],graphMap:GraphMap)=
+    this(constant,null,null,IRIType,classes,graphMap)
+  def this(template:String,termType:TermType,classes:Seq[Resource],graphMap:GraphMap)=
+    this(null,null,template,termType,classes,graphMap)  
 }
 
 class GraphMap(const:RDFNode,col:String,temp:String) 
