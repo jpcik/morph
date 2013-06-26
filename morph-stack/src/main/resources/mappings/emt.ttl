@@ -1,0 +1,36 @@
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix ex: <http://example.com/ns#> .
+@prefix emp: <http://example.com/emp#> .
+@prefix dept: <http://example.com/dept#> .
+@prefix likes: <http://example.com/likes#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix emt: <http://transporte.linkeddata.es/emt#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@base <http://mappingpedia.org/rdb2rdf/r2rml/tc/> .
+
+<TriplesMap1> a rr:TriplyesMap;
+    rr:logicalTable [ rr:tableName "emt" ];
+    rr:subjectMap [ rr:template "http://transporte.linkeddata.es/emt/busstop/id/{stopId}/buslinewaittime/{lineId}";
+                    rr:class emt:BusStopLineObservation; rr:grakphMap [ rr:constant emt:BusWaitTime; ];];
+    rr:predicateObjectMap [ 
+      rr:predicate emt:waitingTime; rr:objectMap    [ rr:column "timeLeft"; rr:datatype xsd:int ]];
+    rr:predicateObjectMap [ 
+      rr:predicate emt:retrievedAt; rr:objectMap    [ rr:column "timestamp"; rr:datatype xsd:dateTime ]];    
+    rr:predicateObjectMap [ 
+      rr:predicate emt:destination; rr:objectMap [ rr:column "destination"]];
+    rr:predicateObjectMap [ 
+      rr:predicate emt:busStop; rr:objectMap [ rr:template "http://transporte.linkeddata.es/emt/busstop/id/{stopId}"]
+    ];
+        
+.
+
+<TriplesMap2> a rr:TriplesMap;
+  rr:logicalTable [rr:tableName "stops"];
+  rr:subjectMap [rr:template "http://transporte.linkeddata.es/emt/busstop/id/{stopId}";
+                 rr:class emt:BusStop;  rr:gdraph ex:DeptGraph;];
+  rr:predicateObjectMap [rr:predicate dcterms:identifier; rr:objectMap [rr:column "stopId"; ]];
+  rr:predicateObjectMap [rr:predicate geo:lat; rr:objectMap [rr:column "lat"; ]];
+  rr:predicateObjectMap [rr:predicate geo:long; rr:objectMap [rr:column "long"; ]];
+  rr:predicateObjectMap [rr:predicate dcterms:description; rr:objectMap [rr:column "name"; ]];
+.

@@ -4,13 +4,18 @@ import akka.actor.Actor
 import java.util.Properties
 import collection.JavaConversions._
 
-class ExportRdfActor(props:Properties) extends Actor {
-  type DataTuples=(Stream[Array[Object]],Array[String])
-  val rdfExp=new ExportRdfBolt(props)
+class ExportRdfActor(id:String,props:Properties) extends Actor {
+  type DataTuples=(Seq[Array[Any]],Array[String])
+  val rdfExp=new ExportRdfBolt(id,props)
   rdfExp.configure
   
   def receive={
-    case d:DataTuples=>rdfExp.sparqlUpdate(d._1, d._2)
+    case (d:DataTuples,s:String) =>
+      rdfExp.sparqlDelete(s)
+      rdfExp.sparqlUpdate(d._1, d._2)
+    case d:DataTuples=>
+      println(d._1)
+      rdfExp.sparqlUpdate(d._1, d._2)
     case _=> println("unknown!")
   }
 }

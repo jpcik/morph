@@ -9,7 +9,7 @@ import backtype.storm.LocalCluster
 class WundergroundTopology {
   def wundTopology(ids:Array[String])={
     val builder=new TopologyBuilder
-    val printer = new ExportRdfBolt(null)
+    val printer = new ExportRdfBolt("",null)
     val b=builder.setBolt("print",printer,6)
     val idsp=ids.grouped(2).toArray
     idsp.zipWithIndex.foreach{id=>

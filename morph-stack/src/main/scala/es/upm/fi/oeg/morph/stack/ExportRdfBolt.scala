@@ -18,10 +18,10 @@ import org.apache.jena.riot.RiotWriter
 import backtype.storm.topology.OutputFieldsDeclarer
 import collection.JavaConversions._
 
-class ExportRdfBolt (props:Properties) extends BaseRichBolt {
+class ExportRdfBolt (id:String,props:Properties) extends BaseRichBolt {
   private var _collector:OutputCollector=_ 
   private var gen:RdfGenerator=_
-  private val mapping=props.getProperty("morph.stack.mapping")
+  private val mapping=props.getProperty("morph.stack."+id+".mapping")
   private val sparqlUpdateUrl=props.getProperty("morph.stack.sparqlUpdate")
   
   def configure={
@@ -43,16 +43,26 @@ class ExportRdfBolt (props:Properties) extends BaseRichBolt {
       sw.append("} ")
     }
     ds.getDefaultModel.write(sw,RDFFormat.TTL)    
-    val update = sparqlUpdateUrl//"http://localhost:3030/ds/update";
+   //"http://localhost:3030/ds/update";
     val query = "INSERT DATA  { "+ sw.toString +" }"
     println (query)
     val u = UpdateFactory.create
      u.add(query)
-     val p = new UpdateProcessRemote(u, update,null)
+     val p = new UpdateProcessRemote(u, sparqlUpdateUrl,null)
      p.execute
     
   }
-  def sparqlUpdate(values:Seq[Array[Object]],names:Seq[String])={
+  
+  def sparqlDelete(delete:String)={
+    println(delete)
+    val u = UpdateFactory.create
+     u.add(delete)
+     val p = new UpdateProcessRemote(u, sparqlUpdateUrl,null)
+     p.execute
+    
+  }
+  
+  def sparqlUpdate(values:Seq[Array[Any]],names:Seq[String])={
     val res=new DataResultSet(values,names.map(a=>a->a).toMap,names.toArray)
     val ds=gen.generate(res)        
     update(ds)        
@@ -62,7 +72,8 @@ class ExportRdfBolt (props:Properties) extends BaseRichBolt {
   
   override def execute(tuple:Tuple){ 
     val names:Seq[String]=tuple.getFields().map(f=>f).toSeq
-    sparqlUpdate(Seq(tuple.getValues.toArray), names)
+    val anyValues=tuple.getValues.asInstanceOf[List[Any]]
+    sparqlUpdate(Seq(anyValues.toArray), names)
   }
 
   override def declareOutputFields(ofd:OutputFieldsDeclarer) {}    

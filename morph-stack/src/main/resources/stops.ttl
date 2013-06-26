@@ -1,0 +1,153 @@
+ <http://transporte.linkeddata.es/emt/busstop/id/33>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "Pº CASTELLANA-ROSARIO PINO" ;
+      <http://purl.org/dc/terms/identifier>
+              "33" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4618499055306" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.68953401416295" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/29>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "Pº CASTELLANA-JUZGADOS" ;
+      <http://purl.org/dc/terms/identifier>
+              "29" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4651266846777" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.68919516042857" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/28>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "Pº CASTELLANA-JUZGADOS" ;
+      <http://purl.org/dc/terms/identifier>
+              "28" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4650604583015" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.68972639781606" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/5459>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "MATEO INURRIA-PZA.DE CASTILLA" ;
+      <http://purl.org/dc/terms/identifier>
+              "5459" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4666045892763" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.6876070919124" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/1530>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "BRAVO MURILLO-PLAZA CASTILLA" ;
+      <http://purl.org/dc/terms/identifier>
+              "1530" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4658567934625" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.69064281030003" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/1531>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "BRAVO MURILLO-PZA.CASTILLA" ;
+      <http://purl.org/dc/terms/identifier>
+              "1531" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4655382235246" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.69043349508911" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/3568>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "Pº CASTELLANA-PZA.CASTILLA" ;
+      <http://purl.org/dc/terms/identifier>
+              "3568" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4670249263737" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.68964029353992" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/5602>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "INTERCAMBIADOR PZA. DE CASTILLA" ;
+      <http://purl.org/dc/terms/identifier>
+              "5602" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4667252428371" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.68928482790594" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/32>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "Pº CASTELLANA-ROSARIO PINO" ;
+      <http://purl.org/dc/terms/identifier>
+              "32" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4618742013768" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.68999243036924" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/30>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "MATEO INURRIA-PZA.DE CASTILLA" ;
+      <http://purl.org/dc/terms/identifier>
+              "30" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4662410987267" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.68813420813401" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/5014>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "AV.ASTURIAS-SAN AQUILINO" ;
+      <http://purl.org/dc/terms/identifier>
+              "5014" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4667380267592" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.69016339250857" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/5015>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "AV.ASTURIAS-PLAZA CASTILLA" ;
+      <http://purl.org/dc/terms/identifier>
+              "5015" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4665061295611" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.69052706664241" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/31>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "MATEO INURRIA-PZA.DE CASTILLA" ;
+      <http://purl.org/dc/terms/identifier>
+              "31" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4664651874285" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.68832522654066" .
+
+<http://transporte.linkeddata.es/emt/busstop/id/4340>
+      a       <http://transporte.linkeddata.es/emt#BusStop> ;
+      <http://purl.org/dc/terms/description>
+              "CAPITAN HAYA-INST.NAC.ESTADISTICA" ;
+      <http://purl.org/dc/terms/identifier>
+              "4340" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#lat>
+              "40.4641762287898" ;
+      <http://www.w3.org/2003/01/geo/wgs84_pos#long>
+              "-3.69146311223746" .

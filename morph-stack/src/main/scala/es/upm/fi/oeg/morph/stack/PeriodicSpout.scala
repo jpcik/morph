@@ -22,7 +22,7 @@ object SpoutConfig{
   }
 }
 
-class PeriodicSpout(id:String) extends BaseRichSpout{  
+abstract class PeriodicSpout(id:String) extends BaseRichSpout{  
   private var _collector:SpoutOutputCollector=_
   val config=SpoutConfig(id)
   
@@ -40,6 +40,7 @@ class PeriodicSpout(id:String) extends BaseRichSpout{
   override def declareOutputFields(declarer:OutputFieldsDeclarer){
     declarer.declare(new Fields(config.fields))
   }  
+
   
 }
 

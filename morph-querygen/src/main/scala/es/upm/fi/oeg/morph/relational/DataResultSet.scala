@@ -5,10 +5,10 @@ import javax.sql.RowSetMetaData
 import java.sql.ResultSetMetaData
 import java.sql.Types
 
-class DataResultSet(val records:Seq[Array[Object]], 
+class DataResultSet(val records:Seq[Array[Any]], 
     val metadata: Map[String, String],queryVars:Array[String]) extends BaseResultSet {
   private var it = records.iterator
-  private var current: Seq[Object] = _
+  private var current: Seq[Any] = _
   private val logger = LoggerFactory.getLogger(this.getClass)
   
   override def next:Boolean = {
@@ -54,11 +54,11 @@ class DataResultSet(val records:Seq[Array[Object]],
     
   override def findColumn(columnLabel:String):Int = labelPos(columnLabel)
   override def getMetaData:ResultSetMetaData=metaData
-  override def getObject(columnIndex:Int):Object=current(columnIndex-1)
+  override def getObject(columnIndex:Int):Object=current(columnIndex-1).asInstanceOf[Object]
   
   override def getObject(columnLabel:String):Object={ 
     logger.trace(internalLabels.mkString)
-    current(internalLabels(columnLabel))
+    current(internalLabels(columnLabel)).asInstanceOf[Object]
   }
 
   override def getString(columnLabel:String):String = 
