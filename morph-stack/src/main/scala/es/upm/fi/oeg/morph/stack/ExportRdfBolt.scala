@@ -26,7 +26,8 @@ class ExportRdfBolt (id:String,props:Properties) extends BaseRichBolt {
   
   def configure={
     val r2rml=R2rmlReader(mapping)    
-    gen= new RdfGenerator(r2rml,new RestRelationalModel(null))  
+    gen= new RdfGenerator(r2rml,new RestRelationalModel,"http://example.com/id#")
+    
     
   }
   override def prepare(conf:java.util.Map[_,_], context:TopologyContext, collector:OutputCollector ) {

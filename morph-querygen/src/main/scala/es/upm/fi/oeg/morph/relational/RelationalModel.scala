@@ -1,8 +1,8 @@
 package es.upm.fi.oeg.morph.relational
-import java.util.Properties
 import java.sql.ResultSet
+import com.typesafe.config.Config
 
-abstract class RelationalModel(props:Properties,val postProc:Boolean) {
+abstract class RelationalModel(conf:Config,val postProc:Boolean) {
   //def configure(props:Properties):Unit
   def query(query:String):ResultSet
   

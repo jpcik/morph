@@ -17,11 +17,11 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import play.api.libs.json.JsNumber
 
-class RestRelationalModel(props:Properties) extends RelationalModel(props,true){
+class RestRelationalModel() extends RelationalModel(null,true){
   override def query(queryString:String):ResultSet={
     def metadata=Seq("id","name","timestamp","bikes","free")
     val metawithPos=metadata.zipWithIndex.toMap
-    val svc = url("http://api.citybik.es/bizi.json")
+    val svc = url("http://api.citybik.es/valenbisi.json")
     val resp = Http(svc OK as.String)
     val json:JsArray = Json.parse(resp()).asInstanceOf[JsArray]
     val data=json.value.map{js=>

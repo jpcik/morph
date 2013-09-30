@@ -2,7 +2,7 @@ name := "morph-r2rml-tc"
 
 organization := "es.upm.fi.oeg.morph"
 
-version := "1.0.2"
+version := "1.0.4"
 
 libraryDependencies ++= Seq(
   "es.upm.fi.oeg.morph" % "morph-core" % "1.0.3",

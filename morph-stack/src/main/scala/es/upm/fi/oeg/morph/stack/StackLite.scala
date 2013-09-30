@@ -28,7 +28,7 @@ class StackLite{
 
     val stops=streamers.head.getStops(441662, 4479735)
     rdfexp ! (stops,Array("stopId","name","lat","long"))
-    
+    /*
     import system.dispatcher
     system.scheduler.schedule(0 seconds,60 seconds){  
       
@@ -36,7 +36,7 @@ class StackLite{
       streamers.foreach{str=>
         rdfexp ! ((str.getData,str.getNames),str.deleteExpression)
       }
-    }
+    }*/
     /*
     system.scheduler.schedule(0 seconds,90 seconds){
       rdfpurge ! DeleteGraph(deleteGraph)

@@ -14,28 +14,17 @@ import java.net.URI
 import es.upm.fi.oeg.morph.relational.JDBCRelationalModel
 import es.upm.fi.oeg.morph.relational.RestRelationalModel
 import es.upm.fi.oeg.morph.relational.RelationalModel
+import es.upm.fi.oeg.morph.Morph
+import org.apache.jena.riot.RiotWriter
 
 class BikeGenerationTest extends JUnitSuite with ShouldMatchersForJUnit with Checkers {
   @Before def initialize() {}
-  private def load(fis:InputStream)={
-    val props = new Properties
-    props.load(fis)    
-    fis.close
-    props
-  }  
-  @Test def testGenerate{
-    val output=ModelFactory.createDefaultModel()
-    //println("output: "+tc.output)
-    val props=load(getClass.getClassLoader.getResourceAsStream("config/morph.properties"))
-
-    //val r2r=new R2RProcessor
-    //props.setProperty(R2RProcessor.R2R_MAPPING_URL,"mappings/bikes.ttl");
-    //r2r.configure(props);
-    val relat:RelationalModel=new RestRelationalModel(props)
-    val reader=R2rmlReader("mappings/bikes.ttl")
     
-    val ds=new RdfGenerator(reader,relat).generate
-    ds.getDefaultModel.write(System.out,RDFFormat.N3)
+  @Test def testGenerate{
+    val morph=new Morph
+    val ds=morph.generateRest("mappings/bikes.ttl")
+ //.getDefaultModel.write(System.out,RDFFormat.N3)
+    RiotWriter.writeNQuads(System.out,ds.asDatasetGraph)
   }
 
 }

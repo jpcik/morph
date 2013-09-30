@@ -26,8 +26,8 @@ import es.upm.fi.oeg.siq.tools.URLTools
 
 class RelationalQueryException(msg:String,e:Throwable) extends Exception(msg,e)
 
-class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel) {
-  val baseUri="http://example.com/base/"
+class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel,baseUri:String) {
+  //val baseUri="http://example.com/base/"
   type GeneratedTriple=(Resource,Property,Object,RDFDatatype)
   
   val df = new DecimalFormat("0.0##E0");  

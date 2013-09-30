@@ -48,7 +48,7 @@ class WordCountDemo {
 
   def rdfize={
     val r2rml=R2rmlReader("mappings/data.ttl")
-    val gen=new RdfGenerator(r2rml,null)
+    val gen=new RdfGenerator(r2rml,null,"http://example.com/")
     val names=Array("timed","temp","stationid")
     val res=new DataResultSet(Stream(Array("tata","chipa","lupa"),
         Array("gota","per","lote")),

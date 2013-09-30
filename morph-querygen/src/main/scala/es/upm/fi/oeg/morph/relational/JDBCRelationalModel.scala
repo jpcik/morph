@@ -1,13 +1,14 @@
 package es.upm.fi.oeg.morph.relational
 import java.util.Properties
 import java.sql.DriverManager
+import com.typesafe.config.Config
 
-class JDBCRelationalModel(props:Properties) extends RelationalModel(props,false){
-  val driver=props.getProperty("jdbc.driver")
+class JDBCRelationalModel(conf:Config) extends RelationalModel(conf,false){
+  val driver=conf.getString("driver")
   Class.forName(driver).newInstance
-  val sourceUrl=props.getProperty("jdbc.source.url")
-  val user=props.getProperty("jdbc.source.user")
-  val password=props.getProperty("jdbc.source.password")
+  val sourceUrl=conf.getString("source.url")
+  val user=conf.getString("source.user")
+  val password=conf.getString("source.password")
   override def query(query:String)={
     val conn=getConnection
     val st=conn.createStatement

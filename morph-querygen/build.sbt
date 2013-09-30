@@ -2,7 +2,7 @@ name := "morph-querygen"
 
 organization := "es.upm.fi.oeg.morph"
 
-version := "1.0.3"
+version := "1.0.5"
 
 libraryDependencies ++= Seq(
   "es.upm.fi.oeg.morph" % "morph-core" % "1.0.3",
@@ -14,6 +14,7 @@ libraryDependencies ++= Seq(
   "org.joda" % "joda-convert" % "1.2",
   "joda-time" % "joda-time" % "2.1",  
   "org.hsqldb" % "hsqldb" % "2.2.8",  
+  "com.typesafe" % "config" % "1.0.2",  
   "junit" % "junit" % "4.7" % "test",  
   "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test",
   "org.scalacheck" % "scalacheck_2.10" % "1.10.0" % "test"

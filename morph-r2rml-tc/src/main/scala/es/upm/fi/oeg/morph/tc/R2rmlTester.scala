@@ -16,16 +16,19 @@ import org.apache.jena.riot.RiotReader
 import org.apache.jena.riot.RDFDataMgr
 import org.apache.jena.riot.RiotWriter
 import org.apache.jena.riot.Lang
+import com.typesafe.config.ConfigFactory
+import es.upm.fi.oeg.morph.Morph
 
 class SuiteTester(testPath:String,val name:String) extends Sparql{
-  val props=load(getClass.getClassLoader().getResourceAsStream("config.properties"))
+  //val props=load(getClass.getClassLoader().getResourceAsStream("config.properties"))
+  val conf=ConfigFactory.load.getConfig("morph")
   
   val manifestFile="manifest.ttl"
   val manifest=Manifest(testPath+"/"+name+"/"+manifestFile,name)
   val script=Source.fromFile(testPath+"/"+name+"/"+manifest.database.scriptFile).getLines.map(_+"\r\n")reduceLeft(_+_)
-  val createSchema=props.getProperty("morph.rdb.createschema")==true
-  val db=new DBManager(props("jdbc.driver"),props("jdbc.source.url"),
-      props("jdbc.source.user"),props("jdbc.source.password"),createSchema)
+  val createSchema=conf.getBoolean("r2rmltc.createschema")
+  val db=new DBManager(conf.getString("jdbc.driver"),conf.getString("jdbc.source.url"),
+      conf.getString("jdbc.source.user"),conf.getString("jdbc.source.password"),createSchema)
   db.clearDB
   db.createDB(script)
  
@@ -41,10 +44,11 @@ class SuiteTester(testPath:String,val name:String) extends Sparql{
  
   
   def testTc(tc:TestCase)={
-    val reader=R2rmlReader(testPath+"/"+name+"/"+ tc.mappingDoc)
-    val relat=new JDBCRelationalModel(props)
+    //val reader=R2rmlReader(testPath+"/"+name+"/"+ tc.mappingDoc)
+    //val relat=new JDBCRelationalModel(props)
     
-    val ds=new RdfGenerator(reader,relat).generate
+    //val ds=new RdfGenerator(reader,relat).generate
+    val ds =new Morph().generateJdbc(testPath+"/"+name+"/"+ tc.mappingDoc)
     RiotWriter.writeNQuads(System.out,ds.asDatasetGraph)
     val suffix=tc.mappingDoc.replace("r2rml","").dropRight(4)
     RiotWriter.writeNQuads(new FileOutputStream(testPath+"/"+name+"/mapped"+suffix+"-morph.nq"),ds.asDatasetGraph)
@@ -100,28 +104,6 @@ class SuiteTester(testPath:String,val name:String) extends Sparql{
     }
   }
 }
-/*
-object R2rmlTester {
-  var testPath=""
-  val db=new DBManager
-  def test(suite:String){
-    db.clearDB
-    //val suite=new SuiteTester(testPath,)
-    
-	
-  }
-  */
-/*
-  def main(args:Array[String]){
-    testPath=args(0)
-    val db=new DBManager
-    //"file:///c:/users/jpc/workspace-morph/morph-parent/morph-r2rml-tc"
-    new File(testPath).list.take(3).foreach{dir=>
-      db.clearDB
-      val suite=new SuiteTester(testPath,dir)
-      suite.testAll
-      //test(dir)      
-    }
-  }
   
-}*/
+  
+  

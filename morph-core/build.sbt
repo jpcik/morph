@@ -4,7 +4,7 @@ name := "morph-core"
 
 organization := "es.upm.fi.oeg.morph"
 
-version := "1.0.3"
+version := "1.0.5"
 
 libraryDependencies ++= Seq(
   "org.apache.jena" % "jena-core" % "2.10.0" intransitive,

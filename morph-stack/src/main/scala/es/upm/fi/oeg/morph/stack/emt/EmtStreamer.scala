@@ -11,11 +11,11 @@ class EmtStreamer(stopId:String) extends PeriodicStreamer{
   
   def getStops(coordX:Long,coordY:Long)={
     val svc = url("https://servicios.emtmadrid.es:8443/geo/servicegeo.asmx/getStopsFromXY")
-      .addQueryParameter("idClient","WEB.SERVICIOS.FIUPM")
-      .addQueryParameter("passKey", "05D413C8-BCEB-425E-81CB-B1C2DB96CC70")
+      .addQueryParameter("idClient","")
+      .addQueryParameter("passKey", "")
       .addQueryParameter("coordinateX", coordX.toString)
       .addQueryParameter("coordinateY", coordY.toString)
-      .addQueryParameter("Radius", "300")
+      .addQueryParameter("Radius", "3000")
       .addQueryParameter("statistics", " ").addQueryParameter("cultureInfo", " ")    
     val xml = Http(svc OK as.xml.Elem)
     
@@ -33,7 +33,7 @@ class EmtStreamer(stopId:String) extends PeriodicStreamer{
   override def getData={
       val svc = url("https://servicios.emtmadrid.es:8443/geo/servicegeo.asmx/getArriveStop")
       .addQueryParameter("idClient","WEB.SERVICIOS.FIUPM")
-      .addQueryParameter("passKey", "05D413C8-BCEB-425E-81CB-B1C2DB96CC70")
+      .addQueryParameter("passKey", "")
       .addQueryParameter("idStop", stopId)
       .addQueryParameter("statistics", " ").addQueryParameter("cultureInfo", " ")    
     val res = Http(svc OK as.xml.Elem)

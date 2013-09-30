@@ -7,6 +7,7 @@
 @prefix emt: <http://transporte.linkeddata.es/emt#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @base <http://mappingpedia.org/rdb2rdf/r2rml/tc/> .
 
 <TriplesMap1> a rr:TriplyesMap;
@@ -32,5 +33,5 @@
   rr:predicateObjectMap [rr:predicate dcterms:identifier; rr:objectMap [rr:column "stopId"; ]];
   rr:predicateObjectMap [rr:predicate geo:lat; rr:objectMap [rr:column "lat"; ]];
   rr:predicateObjectMap [rr:predicate geo:long; rr:objectMap [rr:column "long"; ]];
-  rr:predicateObjectMap [rr:predicate dcterms:description; rr:objectMap [rr:column "name"; ]];
+  rr:predicateObjectMap [rr:predicate rdfs:label; rr:objectMap [rr:column "name"; ]];
 .
