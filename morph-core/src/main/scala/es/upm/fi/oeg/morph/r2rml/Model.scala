@@ -127,3 +127,7 @@ case class LogicalTable(tableName:String,sqlQuery:String,sqlVersion:RDFNode,pk:S
 class R2rmlModelException(msg:String,e:Throwable) extends Exception(msg,e){
   def this(msg:String)=this(msg,null)
 }
+
+class R2rmlParseException(msg:String,e:Throwable) extends Exception(msg,e){
+  def this(msg:String)=this(msg,null)
+}

@@ -57,9 +57,9 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes {
 	  case e:TurtleParseException=>
 		val msg = "Error parsing the r2r document: "+e.getMessage
 		logger.error(msg)
-		throw new IllegalArgumentException(msg)
-	  case e:RiotException => throw new IllegalArgumentException("Error parsing r2rml ",e)
-	  case e:JenaException => throw new R2rmlModelException("Invalid R2RML ",e)
+		throw new R2rmlParseException(msg,e)
+	  case e:RiotException => throw new R2rmlParseException("Error parsing R2RML: "+e.getMessage,e)
+	  case e:JenaException => throw new R2rmlModelException("Invalid R2RML: "+e.getMessage,e)
 	}
 	in.close
 	readTriplesMap(null)
