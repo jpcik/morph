@@ -9,9 +9,9 @@ using the library through Maven or Sbt.
 To build morph you need:
 
 * jvm7
-* sbt 0.12.3 (www.scala-sbt.org)
+* sbt 0.13 (www.scala-sbt.org)
 
-The scala version is 2.10.1, but sbt will take care of that ;)
+The scala version is 2.10.3, but sbt will take care of that ;)
 To compile it, run sbt after downloading the code:
 
 ```
