@@ -2,22 +2,21 @@ name := "morph-querygen"
 
 organization := "es.upm.fi.oeg.morph"
 
-version := "1.0.5"
+version := "1.0.6"
 
 libraryDependencies ++= Seq(
-  "es.upm.fi.oeg.morph" % "morph-core" % "1.0.3",
   "net.databinder.dispatch" %% "dispatch-core" % "0.9.5",
-  "play" %% "play" % "2.1.1" intransitive,
-  "play" %% "play-iteratees" % "2.1.1" intransitive,
-  "org.codehaus.jackson" % "jackson-core-asl" % "1.9.10" intransitive,
-  "org.codehaus.jackson" % "jackson-mapper-asl" % "1.9.10" intransitive,
+  "com.typesafe.play" %% "play" % "2.2.1" intransitive,
+  "com.typesafe.play" %% "play-json" % "2.2.1" intransitive,
+  "com.typesafe.play" %% "play-iteratees" % "2.2.1" intransitive,
+  "com.fasterxml.jackson.core" % "jackson-core" % "2.2.2" intransitive,
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.2.2" intransitive,   
+  "com.fasterxml.jackson.core" % "jackson-annotations" % "2.2.2" intransitive,   
   "org.joda" % "joda-convert" % "1.2",
   "joda-time" % "joda-time" % "2.1",  
   "org.hsqldb" % "hsqldb" % "2.2.8",  
   "com.typesafe" % "config" % "1.0.2",  
-  "junit" % "junit" % "4.7" % "test",  
-  "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test",
-  "org.scalacheck" % "scalacheck_2.10" % "1.10.0" % "test"
+  "org.scalatest" % "scalatest_2.10" % "2.0.RC1" % "test"
 )
 
 javacOptions ++= Seq("-source", "1.7", "-target", "1.6")

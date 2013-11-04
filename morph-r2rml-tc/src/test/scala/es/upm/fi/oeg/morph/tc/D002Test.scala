@@ -1,73 +1,53 @@
 package es.upm.fi.oeg.morph.tc
-import org.junit.Before
-import org.junit.Test
 import es.upm.fi.oeg.morph.execute.RelationalQueryException
 
 class D002Test extends R2RMLTest("D002-1table2columns1row") {
-  @Before def initialize() {}
   
-  @Test def testTC0002a{
-	val tc=suit.getTc("R2RMLTC0002a")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0002a" should "gen 3 t in DG" in{
+	val dg=generate("R2RMLTC0002a")	
 	dg.getDefaultGraph.size should be (3)
   }
-  @Test def testTC0002b{
-	val tc=suit.getTc("R2RMLTC0002b")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0002b" should "gen 1 in DG" in{
+	val dg=generate("R2RMLTC0002b")	
 	dg.getDefaultGraph.size should be (1)
   }
-  @Test def testTC0002c{
-	val tc=suit.getTc("R2RMLTC0002c")
-	println(intercept[RelationalQueryException]{
-	  val ds=suit.testTc(tc.get)
-	})
+  "TC0002c"  should "fail" in{	
+	intercept[RelationalQueryException]{
+	  val tc=generate("R2RMLTC0002c")
+	}
+		
+  }
+  "TC0002d"  should "gen 1 in DG" in{
+	val dg=generate("R2RMLTC0002d")	
+	dg.getDefaultGraph.size should be (1)
+  }
+  "TC0002e"  should "fail" in{		
+	intercept[RelationalQueryException]{
+  	  val dg=generate("R2RMLTC0002e")
+	}
+  }
+  "TC0002f"  should "fail" in{
 	
-	
-	//val dg=ds.asDatasetGraph
-	//dg.getDefaultGraph.size should be (1)
+	intercept[RelationalQueryException]{
+  	  val dg=generate("R2RMLTC0002f")
+	}
   }
-  @Test def testTC0002d{
-	val tc=suit.getTc("R2RMLTC0002d")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0002g"  should "fail" in{
+	println(intercept[RelationalQueryException]{
+	  val dg=generate("R2RMLTC0002g")
+	})
+  }
+  "TC0002h"  should "fail" in{
+	println(intercept[RelationalQueryException]{
+	val dg=generate("R2RMLTC0002h")	
+	})
+  }
+  "TC0002i"  should "gen 1 in DG" in{
+	val dg=generate("R2RMLTC0002i")	
 	dg.getDefaultGraph.size should be (1)
   }
-  @Test def testTC0002e{
-	val tc=suit.getTc("R2RMLTC0002e")	
-	println(intercept[RelationalQueryException]{
-  	  val ds=suit.testTc(tc.get)
-	})
-  }
-  @Test def testTC0002f{
-	val tc=suit.getTc("R2RMLTC0002f")
-	println(intercept[RelationalQueryException]{
-  	  val ds=suit.testTc(tc.get)
-	})
-  }
-  @Test def testTC0002g{
-	val tc=suit.getTc("R2RMLTC0002g")
-	println(intercept[RelationalQueryException]{
-	  val ds=suit.testTc(tc.get)
-	})
-  }
-  @Test def testTC0002h{
-	val tc=suit.getTc("R2RMLTC0002h")	
-	println(intercept[RelationalQueryException]{
-	val ds=suit.testTc(tc.get)
-	})
-  }
-  @Test def testTC0002i{
-	val tc=suit.getTc("R2RMLTC0002i")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
-	dg.getDefaultGraph.size should be (1)
-  }
-  @Test def testTC0002j{
-	val tc=suit.getTc("R2RMLTC0002j")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0002j"  should "gen 1 in DG" in{
+	val dg=generate("R2RMLTC0002j")	
 	dg.getDefaultGraph.size should be (1)
   }
  

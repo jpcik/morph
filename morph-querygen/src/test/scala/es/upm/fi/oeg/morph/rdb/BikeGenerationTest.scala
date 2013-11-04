@@ -1,9 +1,4 @@
 package es.upm.fi.oeg.morph.rdb
-import org.scalatest.junit.ShouldMatchersForJUnit
-import org.scalatest.junit.JUnitSuite
-import org.scalatest.prop.Checkers
-import org.junit.Before
-import org.junit.Test
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import java.io.InputStream
 import java.util.Properties
@@ -16,11 +11,12 @@ import es.upm.fi.oeg.morph.relational.RestRelationalModel
 import es.upm.fi.oeg.morph.relational.RelationalModel
 import es.upm.fi.oeg.morph.Morph
 import org.apache.jena.riot.RiotWriter
+import org.scalatest.FunSpec
+import org.scalatest.Matchers
 
-class BikeGenerationTest extends JUnitSuite with ShouldMatchersForJUnit with Checkers {
-  @Before def initialize() {}
+class BikeGenerationTest  extends FunSpec with Matchers  {
     
-  @Test def testGenerate{
+  describe("A REST dataset mapped"){
     val morph=new Morph
     val ds=morph.generateRest("mappings/bikes.ttl")
  //.getDefaultModel.write(System.out,RDFFormat.N3)

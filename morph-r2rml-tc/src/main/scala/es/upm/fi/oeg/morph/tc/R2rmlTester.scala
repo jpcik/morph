@@ -18,6 +18,7 @@ import org.apache.jena.riot.RiotWriter
 import org.apache.jena.riot.Lang
 import com.typesafe.config.ConfigFactory
 import es.upm.fi.oeg.morph.Morph
+import com.typesafe.config.Config
 
 class SuiteTester(testPath:String,val name:String) extends Sparql{
   //val props=load(getClass.getClassLoader().getResourceAsStream("config.properties"))
@@ -27,7 +28,7 @@ class SuiteTester(testPath:String,val name:String) extends Sparql{
   val manifest=Manifest(testPath+"/"+name+"/"+manifestFile,name)
   val script=Source.fromFile(testPath+"/"+name+"/"+manifest.database.scriptFile).getLines.map(_+"\r\n")reduceLeft(_+_)
   val createSchema=conf.getBoolean("r2rmltc.createschema")
-  val db=new DBManager(conf.getString("jdbc.driver"),conf.getString("jdbc.source.url"),
+  val db=new DBManager(conf.getString("jdbc.driver"),conf.getString("jdbc.source.url")+name,
       conf.getString("jdbc.source.user"),conf.getString("jdbc.source.password"),createSchema)
   db.clearDB
   db.createDB(script)
@@ -44,19 +45,18 @@ class SuiteTester(testPath:String,val name:String) extends Sparql{
  
   
   def testTc(tc:TestCase)={
-    //val reader=R2rmlReader(testPath+"/"+name+"/"+ tc.mappingDoc)
-    //val relat=new JDBCRelationalModel(props)
-    
-    //val ds=new RdfGenerator(reader,relat).generate
-    val ds =new Morph().generateJdbc(testPath+"/"+name+"/"+ tc.mappingDoc)
-    RiotWriter.writeNQuads(System.out,ds.asDatasetGraph)
+    val jdbcConf=conf.getConfig("jdbc")
+    val jdbc= new JDBCRelationalModel(jdbcConf,jdbcConf.getString("source.url")+name)
+
+    val ds =new Morph().generate(jdbc,testPath+"/"+name+"/"+ tc.mappingDoc)
+    RDFDataMgr.write(System.out,ds.asDatasetGraph, Lang.NQUADS)
     val suffix=tc.mappingDoc.replace("r2rml","").dropRight(4)
-    RiotWriter.writeNQuads(new FileOutputStream(testPath+"/"+name+"/mapped"+suffix+"-morph.nq"),ds.asDatasetGraph)
+    RDFDataMgr.write(new FileOutputStream(testPath+"/"+name+"/mapped"+suffix+"-morph.nq"),ds.asDatasetGraph,Lang.NQUADS)
     println("output: "+tc.output)
     
     if (tc.output!=null) {
       val output=RDFDataMgr.loadDataset(testPath+"/"+name+"/"+tc.output, Lang.NQUADS)
-      RiotWriter.writeNQuads(System.out,output.asDatasetGraph())      
+      RDFDataMgr.write(System.out,output.asDatasetGraph,Lang.NQUADS)      
       //output.getReader("N-Quads").read(output,new FileInputStream(testPath+"/"+name+"/"+tc.output),"")
       //output.write(System.out,RDFFormat.N3)      
       val compareEquals=compare(output.asDatasetGraph(),ds.asDatasetGraph)

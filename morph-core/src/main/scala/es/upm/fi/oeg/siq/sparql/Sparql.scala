@@ -15,8 +15,10 @@ import com.hp.hpl.jena.datatypes.xsd.XSDDatatype._
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
 import com.hp.hpl.jena.sparql.syntax.ElementUnion
 import scala.language.implicitConversions
+import com.hp.hpl.jena.graph.NodeFactory
+import com.hp.hpl.jena.sparql.syntax.ElementPathBlock
 trait Sparql{
-  implicit def str2Node(s:String):Node=Node.createVariable(s)
+  implicit def str2Node(s:String):Node=NodeFactory.createVariable(s)
   implicit def res2Node(r:Resource):Node=r.asNode
   implicit def prop2Node(p:Property):Node=p.asNode
   //implicit def tg2etb(e:TripleGraph)=e.tblock
@@ -33,7 +35,14 @@ trait Sparql{
   case class Group(e:Element*){
     val groupelement={
       val g= new ElementGroup
-      e.foreach(g.addElement(_))
+      //g..addElement(e.head)
+      //e.tail.foreach(el=>e.head.)
+      //e.foreach(g.addElement(_))
+      g.getElements().foreach{el=>
+      println("sizing "+el)
+      }
+      g.getElements().addAll(e)
+      println(g.toString)
       g
     }
   }
@@ -51,16 +60,17 @@ trait Sparql{
   
   case class TripleBlock(tg:List[Tgp]){
     lazy val block={
-      val tb=new ElementTriplesBlock    
+      val tb=new ElementPathBlock    
       tg.map(t=>t.tblock.getPattern.getList).flatten.foreach(tb.addTriple(_))
       tb
     }
   }
   
   case class Tgp(s:Node,po:Seq[(Node,Node)]){
-    lazy val tblock:ElementTriplesBlock={
-      val tb=new ElementTriplesBlock    
+    lazy val tblock:ElementPathBlock={// TriplesBlock={
+      val tb=new ElementPathBlock    
       po.map(a=>new Triple(s,a._1,a._2)).foreach(tb.addTriple(_))
+
       tb
     }
   }  
@@ -79,7 +89,7 @@ trait Sparql{
   
   case class Optional(ignore:Int,tg:Seq[Tgp]){
     lazy val block={
-      val e=new ElementTriplesBlock
+      val e=new ElementPathBlock
       tg.map(t=>t.tblock.getPattern.getList).flatten.foreach(e.addTriple(_))
       new ElementOptional(e)
     }
@@ -99,7 +109,7 @@ trait Sparql{
   abstract class SparqlQuery(val body:Element)
   
   case class SelectSparqlQuery(override val body:Element,vars:Array[String]) extends SparqlQuery(body){
-    private val query=new Query
+    val query=new Query
     query.setQuerySelectType
     private val sp=new QueryPlus(query)      
     sp.addResultVars(vars)

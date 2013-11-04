@@ -1,30 +1,22 @@
 package es.upm.fi.oeg.morph.tc
-import org.junit.Before
-import org.junit.Test
-import org.junit.Ignore
+
+import com.hp.hpl.jena.graph.Node
+import com.hp.hpl.jena.graph.NodeFactory
 
 class D008Test extends R2RMLTest("D008-1table1compositeprimarykey3columns1row") {
-
-  @Before def initialize() {}
   
-  @Test def testTC0008a{
-	val tc=suit.getTc("R2RMLTC0008a")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0008a" should "gen 0 in DG" in{
+	val dg=generate("R2RMLTC0008a")	
 	dg.getDefaultGraph.size should be (0)
-	ds.getNamedModel("http://example.com/graph/Student/10/Venus%20Williams") should not be (null)
+	dg.getGraph(NodeFactory.createURI("http://example.com/graph/Student/10/Venus%20Williams")) should not be (null)
 	
   }
-  @Test def testTC0008b{
-	val tc=suit.getTc("R2RMLTC0008b")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0008b" should "gen 5 in DG" in{
+	val dg=generate("R2RMLTC0008b")	
 	dg.getDefaultGraph.size should be (5)
   }
-  @Test def testTC0008c{
-	val tc=suit.getTc("R2RMLTC0008c")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0008c" should "gen 2 in DG" in{
+	val dg=generate("R2RMLTC0008c")	
 	dg.getDefaultGraph.size should be (2)
   }
 

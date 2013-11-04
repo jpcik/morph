@@ -80,6 +80,7 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes {
 
 	val group=Group(
 	  ^(tMapVar,(RDF.a,R2RML.TriplesMap),(logicalTable,"lt"),(subjectMap,"sMap")),                            
+	  //^(tMapVar,RDF.a,R2RML.TriplesMap),^(tMapVar,logicalTable,"lt"),^(tMapVar,subjectMap,"sMap"),
       Optional("lt",sqlQuery,"query"),
       Optional("lt",sqlVersion,"version"),
       Optional("lt",tableName,"table"),
@@ -196,11 +197,13 @@ class R2rmlReader(mappingStream:InputStream) extends Sparql with XSDtypes {
 
   
   private def readSubjectClasses(tMapUri:Node)={
-    val vars=Array("sclass")
+    val vars=Array("sclass","sMap")
     val group=Group(
-	  ^(tMapUri,RDF.a,R2RML.TriplesMap),
-      ^(tMapUri,subjectMap,"sMap"),
-      ^("sMap",classProperty,"sclass"))
+        ^("sMap",(classProperty,"sclass")),
+      ^(tMapUri,(RDF.a.asNode,R2RML.TriplesMap.asNode),(subjectMap.asNode,str2Node("sMap")))
+	  //^(tMapUri,(RDF.a,R2RML.TriplesMap)),
+      //^(tMapUri,subjectMap,"sMap"))
+      )
           
     val query=SelectSparqlQuery(group,vars)
     logger.debug("Query subject classes: "+query.serialize);

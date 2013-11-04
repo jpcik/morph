@@ -8,7 +8,7 @@ object MainBuild extends Build {
     unmanagedSourceDirectories in Test <<= (scalaSource in Test)(Seq(_))
   )
   val projSettings = Seq (
-    scalaVersion := "2.10.1",
+    scalaVersion := "2.10.3",
     crossPaths := false,
     scalacOptions += "-deprecation",
     parallelExecution in Test := false,
@@ -27,7 +27,7 @@ object MainBuild extends Build {
 
   val buildSettings = Defaults.defaultSettings ++ projSettings ++ ideSettings ++ publishSettings 
 
-  scalaVersion := "2.10.1"
+  scalaVersion := "2.10.3"
   autoScalaLibrary := false
   lazy val root = Project(id = "morph-parent",
                           base = file("."),settings = buildSettings) aggregate(core, querygen,r2rmlTc)

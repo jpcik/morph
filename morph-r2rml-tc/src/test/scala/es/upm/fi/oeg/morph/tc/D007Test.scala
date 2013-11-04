@@ -1,63 +1,44 @@
 package es.upm.fi.oeg.morph.tc
-import org.junit.Before
-import org.junit.Test
 import es.upm.fi.oeg.morph.r2rml.R2rmlModelException
 import org.openjena.riot.SysRIOT
 import collection.JavaConversions._
 
 class D007Test extends R2RMLTest("D007-1table1primarykey2columns1row") {
 
-  @Before def initialize() {
-    SysRIOT.wireIntoJena()
-  }
+  //SysRIOT.wireIntoJena()
   
-  @Test def testTC0007a{
-	val tc=suit.getTc("R2RMLTC0007a")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0007a" should "gen 1 in DG" in{
+	val dg=generate("R2RMLTC0007a")	
 	dg.getDefaultGraph.size should be (1)
   }
-  @Test def testTC0007b{
-	val tc=suit.getTc("R2RMLTC0007b")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0007b" should "gen 0 in DG" in{
+	val dg=generate("R2RMLTC0007b")	
 	dg.getDefaultGraph.size should be (0)
 	dg.listGraphNodes.toList.head.getURI.toString should be ("http://example.com/PersonGraph")
   }
-  @Test def testTC0007c{
-	val tc=suit.getTc("R2RMLTC0007c")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0007c" should "gen 4 in DG" in{
+	val dg=generate("R2RMLTC0007c")	
 	dg.getDefaultGraph.size should be (4)
   }
-  @Test def testTC0007d{
-	val tc=suit.getTc("R2RMLTC0007d")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0007d" should "gen 4 in DG" in{
+	val dg=generate("R2RMLTC0007d")	
 	dg.getDefaultGraph.size should be (4)
   }
-  @Test def testTC0007e{
-	val tc=suit.getTc("R2RMLTC0007e")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0007e" should "gen 0 in DG" in{
+	val dg=generate("R2RMLTC0007e")	
 	dg.getDefaultGraph.size should be (0)
 	dg.listGraphNodes.toList.head.getURI.toString should be ("http://example.com/PersonGraph")
   }
-  @Test def testTC0007f{
-	val tc=suit.getTc("R2RMLTC0007f")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0007f" should "gen 0 in DG" in{
+	val dg=generate("R2RMLTC0007f")	
 	dg.getDefaultGraph.size should be (0)
 	dg.listGraphNodes.toList.head.getURI.toString should be ("http://example.com/PersonGraph")
   }
-  @Test def testTC0007g{
-	val tc=suit.getTc("R2RMLTC0007g")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC0007g" should "gen 2 in DG" in{
+	val dg=generate("R2RMLTC0007g")	
 	dg.getDefaultGraph.size should be (2)
   }
-  @Test def testTC0007h{
-	val tc=suit.getTc("R2RMLTC0007h")	
-	println(intercept[R2rmlModelException]{val ds=suit.testTc(tc.get)})
+  "TC0007h" should "gen 1 in DG" in{		
+	println(intercept[R2rmlModelException]{val dg=generate("R2RMLTC0007h")})
   }
 }

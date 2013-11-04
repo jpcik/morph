@@ -1,16 +1,9 @@
 package es.upm.fi.oeg.morph.tc
-import org.junit.Before
-import org.junit.Test
-import org.junit.Ignore
 
 class D013Test extends R2RMLTest("D013-1table1primarykey3columns2rows1nullvalue") {
 
-  @Before def initialize() {}
-   
-  @Test def testTC013a{
-	val tc=suit.getTc("R2RMLTC0013a")	
-	val ds=suit.testTc(tc.get)
-	val dg=ds.asDatasetGraph
+  "TC013a" should "gen 1 in DG" in{
+	val dg=generate("R2RMLTC0013a")	
 	dg.getDefaultGraph.size should be (1)
   }
 }

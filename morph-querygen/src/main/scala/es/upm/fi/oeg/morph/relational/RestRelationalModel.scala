@@ -2,10 +2,6 @@ package es.upm.fi.oeg.morph.relational
 import java.util.Properties
 import java.sql.ResultSet
 import java.sql.ResultSetMetaData
-//import com.sun.jersey.api.client.Client
-//import com.sun.jersey.core.util.MultivaluedMapImpl
-//import com.sun.jersey.api.client.UniformInterfaceException
-//import com.google.gson.Gson
 import collection.JavaConversions._
 import javax.sql.RowSetMetaData
 import javax.sql.rowset.RowSetMetaDataImpl
@@ -34,45 +30,9 @@ class RestRelationalModel() extends RelationalModel(null,true){
       tt
     }
     new RestResultSet(data.toStream,metadata.map(_->null).toMap)
-
-    /*
-    println(data.mkString("."))
-    val c = Client.create
-    val webResource = c.resource("http://api.citybik.es/bizi.json")
-    val queryParams = new MultivaluedMapImpl()
-		   
-    val wr = webResource.queryParams(queryParams)
-	println(wr.getURI.toString)
-	val res=try wr.get(classOf[String])
-	catch {case e:UniformInterfaceException=>throw e}
-    
-	val cons=Class.forName("es.upm.fi.oeg.morph.relational.Station$").getDeclaredConstructors()
-	cons(0).setAccessible(true)
-	cons(0).newInstance().asInstanceOf[Decoder].getResultSet(res)*/
   } 
 }
-/*
-case class Station(id:String,name:String,lat:Long,lng:Long,timestamp:String,bikes:Int,free:Int)
-    extends RestResult(id,Station.metadata){
-  
-  override def getValue(fieldName:String)=
-    if (fieldName.equals("timestamp")) timestamp
-    else if (fieldName.equals("bikes")) bikes.toString
-    else throw new IllegalArgumentException("Unknown field: "+fieldName)
-}
-object Station extends Decoder{
-  def metadata=Set("id","name","timestamp","bikes","free")
-  def getResultSet(json:String)={
-    val g = new Gson();
-	val col = g.fromJson(json, classOf[Array[Station]]);
-    new RestResultSet(col.toStream,Station.metadata.map(_->null).toMap)
-  }
-}
 
-abstract class Decoder{
-  def getResultSet(json:String):RestResultSet
-}
-*/
 class MapResult(name:String,metadata:Map[String,Int],values:Seq[String]) extends RestResult(name,metadata.keys.toSet){
   println(values.mkString("--"))
   override def getValue(fieldName:String)=values(metadata(fieldName))
