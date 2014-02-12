@@ -11,8 +11,8 @@ libraryDependencies ++= Seq(
   "org.apache.jena" % "jena-arq" % "2.11.0" intransitive,
   "org.apache.jena" % "jena-iri" % "1.0.0" intransitive,
   "xerces" % "xercesImpl" % "2.11.0" ,
-  "org.slf4j" % "slf4j-api" % "1.6.4",
-  "ch.qos.logback" % "logback-classic" % "1.0.9" % "test",      
+  "org.slf4j" % "slf4j-api" % "1.7.5",
+  "ch.qos.logback" % "logback-classic" % "1.0.13" % "test",      
   "org.scalatest" % "scalatest_2.10" % "2.0.RC1" % "test"
  )
 

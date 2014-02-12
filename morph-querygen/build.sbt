@@ -9,6 +9,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play" % "2.2.1" intransitive,
   "com.typesafe.play" %% "play-json" % "2.2.1" intransitive,
   "com.typesafe.play" %% "play-iteratees" % "2.2.1" intransitive,
+  "com.typesafe.play" %% "templates" % "2.2.1" intransitive,
   "com.fasterxml.jackson.core" % "jackson-core" % "2.2.2" intransitive,
   "com.fasterxml.jackson.core" % "jackson-databind" % "2.2.2" intransitive,   
   "com.fasterxml.jackson.core" % "jackson-annotations" % "2.2.2" intransitive,   

@@ -38,11 +38,7 @@ trait Sparql{
       //g..addElement(e.head)
       //e.tail.foreach(el=>e.head.)
       //e.foreach(g.addElement(_))
-      g.getElements().foreach{el=>
-      println("sizing "+el)
-      }
       g.getElements().addAll(e)
-      println(g.toString)
       g
     }
   }
