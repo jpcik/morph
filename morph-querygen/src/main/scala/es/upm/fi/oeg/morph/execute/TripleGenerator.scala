@@ -22,6 +22,7 @@ import com.hp.hpl.jena.query.Dataset
 import es.upm.fi.oeg.morph.r2rml.SubjectMap
 import es.upm.fi.oeg.morph.r2rml.TermMap
 import com.hp.hpl.jena.rdf.model.Model
+import org.slf4j.LoggerFactory
 
 trait MapGenerator{
   protected def createIriOrBNode(m:Model,value:String,map:TermMap,baseUri:String)={
@@ -43,6 +44,9 @@ trait MapGenerator{
 }
 
 case class TripleGenerator(d:Dataset,tm:TriplesMap, baseUri:String) extends MapGenerator{
+ 
+  val logger = LoggerFactory.getLogger(classOf[TripleGenerator])
+  
   def genModel=d.getDefaultModel
    
   def slugify(str: String): String = {
@@ -54,8 +58,8 @@ case class TripleGenerator(d:Dataset,tm:TriplesMap, baseUri:String) extends MapG
    
   def genSubject(rs:ResultSet,col:String)={
     val subj=tm.subjectMap
-    println("metacolumn "+rs.getMetaData.getColumnName(1))
-    println("id column "+col)
+    logger.debug("metacolumn "+rs.getMetaData.getColumnName(1))
+    logger.debug("id column "+col)
     val id=rs.getString(col)
     if (id==null) null
     else {

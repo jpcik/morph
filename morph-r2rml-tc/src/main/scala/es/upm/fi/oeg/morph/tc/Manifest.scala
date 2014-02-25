@@ -18,6 +18,7 @@ import es.upm.fi.oeg.morph.tc.voc.DCTerms
 import es.upm.fi.oeg.morph.voc.RDF
 import es.upm.fi.oeg.morph.voc.RDFFormat
 import es.upm.fi.oeg.siq.sparql.Sparql
+import org.slf4j.LoggerFactory
 
 
 
@@ -32,6 +33,9 @@ class Manifest(val name:String,val database:Database) {
 
 
 object Manifest extends Sparql{
+  
+  val logger = LoggerFactory.getLogger(classOf[Manifest])
+  
   //val prefixes="prefix test: <http://www.w3.org/2006/03/test-description#> "
     
   val tgs=Group(
@@ -58,7 +62,7 @@ object Manifest extends Sparql{
 	val tcases=results.map(qs=>
 	    new TestCase(qs.getLiteral("tcid").getString,"",qs.getLiteral("mapping"),
 	        qs.getLiteral("hasoutput").getBoolean,qs.getLiteral("output")))
-	println(tcases.length)
+	logger.debug(tcases.length.toString)
 	val db=new Database(results.head.getLiteral("id").getString,"",
 	    results.head.getLiteral("script").getString,tcases.toArray)
 	new Manifest(name,db)  
