@@ -19,8 +19,12 @@ import org.apache.jena.riot.Lang
 import com.typesafe.config.ConfigFactory
 import es.upm.fi.oeg.morph.Morph
 import com.typesafe.config.Config
+import org.slf4j.LoggerFactory
 
 class SuiteTester(testPath:String,val name:String) extends Sparql{
+  
+  val logger = LoggerFactory.getLogger(classOf[SuiteTester])
+  
   //val props=load(getClass.getClassLoader().getResourceAsStream("config.properties"))
   val conf=ConfigFactory.load.getConfig("morph")
   
@@ -52,7 +56,7 @@ class SuiteTester(testPath:String,val name:String) extends Sparql{
     RDFDataMgr.write(System.out,ds.asDatasetGraph, Lang.NQUADS)
     val suffix=tc.mappingDoc.replace("r2rml","").dropRight(4)
     RDFDataMgr.write(new FileOutputStream(testPath+"/"+name+"/mapped"+suffix+"-morph.nq"),ds.asDatasetGraph,Lang.NQUADS)
-    println("output: "+tc.output)
+    logger.debug("output: "+tc.output)
     
     if (tc.output!=null) {
       val output=RDFDataMgr.loadDataset(testPath+"/"+name+"/"+tc.output, Lang.NQUADS)
@@ -60,7 +64,7 @@ class SuiteTester(testPath:String,val name:String) extends Sparql{
       //output.getReader("N-Quads").read(output,new FileInputStream(testPath+"/"+name+"/"+tc.output),"")
       //output.write(System.out,RDFFormat.N3)      
       val compareEquals=compare(output.asDatasetGraph(),ds.asDatasetGraph)
-      println("comparing "+compareEquals)
+      logger.debug("comparing "+compareEquals)
       if (!compareEquals)
         throw new Exception("Test results do not match expected triple dataset.")
     }
@@ -85,14 +89,16 @@ class SuiteTester(testPath:String,val name:String) extends Sparql{
   
   def compare(g1:Graph,g2:Graph)={
     compareValues(g1,g2)
-    println(g1.getClass())
+    logger.debug(g1.getClass().toString())
     g1.isIsomorphicWith(g2)
   }
 
   def compareValues(g1:Graph,g2:Graph)={
     val res=g1.find("s","p","o")
-    res.foreach{a=>println(a.asTriple)
-      println(g2.contains("s",a.getPredicate,a.getObject))}
+    res.foreach{
+      a=>logger.debug(a.asTriple.toString())
+      logger.debug(g2.contains("s",a.getPredicate,a.getObject).toString)
+    }
   }
   
   def testAll{

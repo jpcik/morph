@@ -23,10 +23,14 @@ import java.sql.ResultSet
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import es.upm.fi.oeg.siq.tools.URLTools
+import org.slf4j.LoggerFactory
 
 class RelationalQueryException(msg:String,e:Throwable) extends Exception(msg,e)
 
 class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel,baseUri:String) {
+  
+  val logger = LoggerFactory.getLogger(classOf[RdfGenerator])
+  
   //val baseUri="http://example.com/base/"
   type GeneratedTriple=(Resource,Property,Object,RDFDatatype)
   
@@ -36,7 +40,7 @@ class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel,baseUri:String) 
   
   private def addTriple(m:Model,subj:Resource,p:Property,obj:(Object,RDFDatatype),poMap:PredicateObjectMap)={
     val (ob,datatype)=obj
-    println("more data "+obj)
+    logger.debug("more data "+obj)
     val oMap=poMap.objectMap
 	if (ob!=null)
 	  if (ob.isInstanceOf[Resource])
@@ -71,7 +75,7 @@ class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel,baseUri:String) 
     if (r2rml.tMaps.isEmpty)
       throw new Exception("No valid R2RML mappings in the provided document.")
     val queries=r2rml.tMaps.foreach{tMap=>
-      println("now this one "+tMap.uri)
+      logger.debug("now this one "+tMap.uri)
       val tgen=new TripleGenerator(ds,tMap,baseUri) 
       res.beforeFirst
       iterateGenerate(res, tgen)
@@ -103,10 +107,10 @@ class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel,baseUri:String) 
 		    val po=
 		      if (relational.postProc) propIns.generate(res)
 		      else propIns.generate(null, res)
-		    println("data"+po)
+		    logger.debug("data"+po)
 		    addTriple(tMapModel,subj,propIns.genPredicate,po,prop)
 		    if (prop.graphMap!=null){
-		      println("graph:" +prop.graphMap)
+		      logger.debug("graph:" +prop.graphMap)
 		      val poModel=tgen.graph(res,prop.graphMap)
 		      addTriple(poModel,subj,propIns.genPredicate,po,prop)
 		    }
@@ -125,7 +129,7 @@ class RdfGenerator(r2rml:R2rmlReader,relational:RelationalModel,baseUri:String) 
       throw new Exception("No valid R2RML mappings in the provided document.")
     val queries=r2rml.tMaps.foreach{tMap=>
       val q=new RdbQueryGenerator(tMap,r2rml).query
-      println("query "+q)
+      logger.debug("query "+q)
       
       val res=try relational.query(q)
       catch {

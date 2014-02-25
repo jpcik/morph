@@ -10,6 +10,7 @@ import java.net.URI
 import org.scalatest.FlatSpec
 import java.util.Calendar
 import org.scalatest.Matchers
+import org.slf4j.LoggerFactory
 
 class DateTimeSpec extends FlatSpec with Matchers  {
   

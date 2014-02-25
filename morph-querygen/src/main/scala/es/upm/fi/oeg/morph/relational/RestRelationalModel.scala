@@ -12,6 +12,7 @@ import play.api.libs.json.Json
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import play.api.libs.json.JsNumber
+import org.slf4j.LoggerFactory
 
 class RestRelationalModel() extends RelationalModel(null,true){
   override def query(queryString:String):ResultSet={
@@ -34,7 +35,8 @@ class RestRelationalModel() extends RelationalModel(null,true){
 }
 
 class MapResult(name:String,metadata:Map[String,Int],values:Seq[String]) extends RestResult(name,metadata.keys.toSet){
-  println(values.mkString("--"))
+  val logger = LoggerFactory.getLogger(classOf[MapResult])
+  logger.debug(values.mkString("--"))
   override def getValue(fieldName:String)=values(metadata(fieldName))
 }
 
