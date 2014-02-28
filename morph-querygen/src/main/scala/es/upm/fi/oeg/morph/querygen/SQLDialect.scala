@@ -13,7 +13,7 @@ object SQLDialect {
 
 trait SQLDialect {
   val name: String = "default"
-  val concatChar: String = "|"
+  val concatChar: String = "||"
   override def toString(): String = String.format("%s [concatChar=%s]", name, concatChar)
 }
 
