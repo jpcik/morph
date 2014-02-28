@@ -19,12 +19,12 @@ trait SQLDialect {
 
 class DefaultSQL extends SQLDialect
 
-case class SQLServer extends SQLDialect {
+case class SQLServer() extends SQLDialect {
   override val name = "sqlserver"
   override val concatChar = "+"
 }
 
-case class Oracle extends SQLDialect {
+case class Oracle() extends SQLDialect {
   override val name: String = "oracle"
 }
 
