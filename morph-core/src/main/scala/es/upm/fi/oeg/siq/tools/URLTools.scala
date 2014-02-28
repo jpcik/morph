@@ -1,54 +1,58 @@
 package es.upm.fi.oeg.siq.tools
 
+import org.slf4j.LoggerFactory
+
 object URLTools {
-  def stripSpecial(input:String)={
+
+  val logger = LoggerFactory.getLogger(URLTools.getClass())
+
+  def stripSpecial(input: String) = {
     val resultStr = new StringBuilder
-    input.toCharArray.foreach{ch=>
-      if (!isSpecial(ch)) 
-        resultStr.append(ch)            
+    input.toCharArray.foreach { ch =>
+      if (!isSpecial(ch))
+        resultStr.append(ch)
     }
     resultStr.toString
   }
-  
-  def encode(input:String)={
+
+  def encode(input: String) = {
     val resultStr = new StringBuilder
-    input.toCharArray.foreach{ch=>
+    input.toCharArray.foreach { ch =>
       if (isUnsafe(ch)) {
         resultStr.append('%')
         resultStr.append(toHex(ch / 16))
         resultStr.append(toHex(ch % 16))
-      } 
-      else resultStr.append(ch)            
+      } else resultStr.append(ch)
     }
     resultStr.toString
   }
 
-  def encodeAll(input:String)={
+  def encodeAll(input: String) = {
     val resultStr = new StringBuilder
-    input.toCharArray.foreach{ch=>
+    input.toCharArray.foreach { ch =>
       if (isSpecial(ch)) {
         resultStr.append('%')
         resultStr.append(toHex(ch / 16))
         resultStr.append(toHex(ch % 16))
-      } 
-      else resultStr.append(ch)            
+      } else resultStr.append(ch)
     }
     resultStr.toString
   }
 
-  private def toHex(ch:Int):Char=
-    (if (ch<10) '0'+ch else 'A'+ch -10).toChar
+  private def toHex(ch: Int): Char =
+    (if (ch < 10) '0' + ch else 'A' + ch - 10).toChar
 
-  private def isUnsafe(ch:Char):Boolean= 
+  private def isUnsafe(ch: Char): Boolean =
     if (ch > 128 || ch < 0) true
     else " %$&+,=?@<>%".indexOf(ch) >= 0
-  
-  private def isSpecial(ch:Char):Boolean= {
+
+  private def isSpecial(ch: Char): Boolean = {
     if (ch > 128 || ch < 0) return true
     return " \"/%$:&+,;=?@<>#%{}\\".indexOf(ch) >= 0;
   }
-    
-  def isAbsIRI(iri:String)={
-    iri.startsWith("http://") || iri.startsWith("https://") 
+
+  def isAbsIRI(iri: String) = {
+    logger.debug("\n\n\n\nIRI: " + iri)
+    iri.startsWith("http://") || iri.startsWith("https://")
   }
 }
