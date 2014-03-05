@@ -17,12 +17,15 @@ object URLTools {
 
   def encode(input: String) = {
     val resultStr = new StringBuilder
-    input.toCharArray.foreach { ch =>
-      if (isUnsafe(ch)) {
-        resultStr.append('%')
-        resultStr.append(toHex(ch / 16))
-        resultStr.append(toHex(ch % 16))
-      } else resultStr.append(ch)
+    input match {
+      case null => resultStr.append("NULL")
+      case text => text.toCharArray.foreach { ch =>
+        if (isUnsafe(ch)) {
+          resultStr.append('%')
+          resultStr.append(toHex(ch / 16))
+          resultStr.append(toHex(ch % 16))
+        } else resultStr.append(ch)
+      }
     }
     resultStr.toString
   }

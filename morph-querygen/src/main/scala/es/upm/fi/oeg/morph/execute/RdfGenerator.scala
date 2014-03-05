@@ -98,9 +98,12 @@ class RdfGenerator(r2rml: R2rmlReader, relational: RelationalModel, baseUri: Str
     else
       new DefaultSQL
 
+    //////////////////////////////////////////////////////////
     val queries = r2rml.tMaps.foreach { tMap =>
       val q = new RdbQueryGenerator(tMap, r2rml, sqlDialect).query
       logger.debug("query " + q)
+
+      System.out.println("\n\n\n\n" + q);
 
       val res = try relational.query(q)
       catch {
@@ -111,6 +114,8 @@ class RdfGenerator(r2rml: R2rmlReader, relational: RelationalModel, baseUri: Str
       val tgen = new TripleGenerator(ds, tMap, baseUri)
       iterateGenerate(res, tgen)
     }
+
+    //////////////////////////////////////////////////////////
     ds
   }
 
