@@ -23,7 +23,7 @@ class JDBCRelationalModel(conf: Config, url: String) extends RelationalModel(con
     val conn = getConnection
     val st = conn.createStatement
     
-    println("\n\n\n___________________________" + query + "___________________________\n")
+    logger.debug("\n{}\n", query)
     
     st.executeQuery(query)
   }

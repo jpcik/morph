@@ -4,13 +4,18 @@ import es.upm.fi.oeg.morph.r2rml.R2rmlReader
 import es.upm.fi.oeg.morph.r2rml.JoinCondition
 import es.upm.fi.oeg.morph.r2rml.RefObjectMap
 import es.upm.fi.oeg.morph.r2rml.R2rmlUtils._
+import org.slf4j.LoggerFactory
 
 class RdbQueryGenerator(val tm: TriplesMap, r2rml: R2rmlReader, sqlDialect: SQLDialect = new DefaultSQL) {
+
+  val logger = LoggerFactory.getLogger(RdbQueryGenerator.getClass());
 
   def formatTemplate(template: String, alias: String): String =
     formatTemplate(template, alias, null, null)
 
   def formatTemplate(template: String, alias: String, colName: String, parent: TriplesMap, concatChar: String = sqlDialect.concatChar) = {
+
+    logger.debug("using SQL DIALECT: " + sqlDialect)
 
     val tableName = if (parent != null) parent.logicalTable.tableName
     else "TABLE1"

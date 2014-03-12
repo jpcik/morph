@@ -101,9 +101,7 @@ class RdfGenerator(r2rml: R2rmlReader, relational: RelationalModel, baseUri: Str
     //////////////////////////////////////////////////////////
     val queries = r2rml.tMaps.foreach { tMap =>
       val q = new RdbQueryGenerator(tMap, r2rml, sqlDialect).query
-      logger.debug("query " + q)
-
-      System.out.println("\n\n\n\n" + q);
+      logger.debug("query {}\n", q)
 
       val res = try relational.query(q)
       catch {

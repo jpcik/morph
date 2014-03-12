@@ -29,12 +29,12 @@ case class Oracle() extends SQLDialect {
 }
 
 // NOTE: TESTING code, should actually go in src/test/...
-object prova extends App {
-  
+object mainDialectDetection extends App {
+
   val dialects = List("sqlserver", "oracle", "something else", "other")
   dialects.foreach(name => {
     val d = SQLDialect(name)
     println(name + ": " + d)
   })
-  
+
 }
