@@ -7,19 +7,22 @@ import es.upm.fi.oeg.morph.relational.RestRelationalModel
 import es.upm.fi.oeg.morph.relational.RelationalModel
 import es.upm.fi.oeg.morph.voc.RDFFormat
 import es.upm.fi.oeg.morph.relational.JDBCRelationalModel
+import java.net.URI
+import java.net.URL
 
 class Morph {
-  private val conf=ConfigFactory.load.getConfig("morph")
-  private lazy val rest:RelationalModel=new RestRelationalModel
-  private lazy val jdbc= new JDBCRelationalModel(conf.getConfig("jdbc"))
-  
-  def generateJdbc(mapping:String)=generate(jdbc,mapping)
-  def generateRest(mapping:String)=generate(rest,mapping)
-  
-  def generate(model:RelationalModel,mapping:String)={
-    val reader=R2rmlReader(mapping)
-    
-    val ds=new RdfGenerator(reader,model,conf.getString("baseUri")).generate
+
+  private val conf = ConfigFactory.load.getConfig("morph")
+  private lazy val rest: RelationalModel = new RestRelationalModel
+  private lazy val jdbc = new JDBCRelationalModel(conf.getConfig("jdbc"))
+
+  def generateJdbc(mapping: String) = generate(jdbc, mapping)
+  def generateRest(mapping: String) = generate(rest, mapping)
+
+  def generate(model: RelationalModel, mapping: String) = {
+
+    val reader = R2rmlReader(mapping)
+    val ds = new RdfGenerator(reader, model, conf.getString("baseUri")).generate
     //ds.getDefaultModel.write(System.out,RDFFormat.N3)
     ds
   }
