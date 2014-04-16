@@ -14,13 +14,13 @@ import org.apache.jena.riot.RiotWriter
 import org.scalatest.FunSpec
 import org.scalatest.Matchers
 
-class BikeGenerationTest  extends FunSpec with Matchers  {
-    
-  describe("A REST dataset mapped"){
-    val morph=new Morph
-    val ds=morph.generateRest("mappings/bikes.ttl")
- //.getDefaultModel.write(System.out,RDFFormat.N3)
-    RiotWriter.writeNQuads(System.out,ds.asDatasetGraph)
+class BikeGenerationTest extends FunSpec with Matchers {
+
+  describe("A REST dataset mapped") {
+    val morph = new Morph
+    val ds = morph.generateRest("mappings/bikes.ttl")
+    //.getDefaultModel.write(System.out,RDFFormat.N3)
+    RiotWriter.writeNQuads(System.out, ds.asDatasetGraph)
   }
 
 }

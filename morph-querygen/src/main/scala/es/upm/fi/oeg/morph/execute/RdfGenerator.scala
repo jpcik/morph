@@ -27,12 +27,17 @@ import org.slf4j.LoggerFactory
 import es.upm.fi.oeg.morph.relational.JDBCRelationalModel
 import es.upm.fi.oeg.morph.querygen.SQLDialect
 import es.upm.fi.oeg.morph.querygen.DefaultSQL
+import com.hp.hpl.jena.graph.GraphListener
+import com.hp.hpl.jena.graph.GraphEventManager
+import com.hp.hpl.jena.rdf.model.ModelChangedListener
 
 class RelationalQueryException(msg: String, e: Throwable) extends Exception(msg, e)
 
 class RdfGenerator(r2rml: R2rmlReader, relational: RelationalModel, baseUri: String) {
 
   val logger = LoggerFactory.getLogger(classOf[RdfGenerator])
+
+  val model: Model = ModelFactory.createDefaultModel
 
   //val baseUri="http://example.com/base/"
   type GeneratedTriple = (Resource, Property, Object, RDFDatatype)
@@ -71,9 +76,30 @@ class RdfGenerator(r2rml: R2rmlReader, relational: RelationalModel, baseUri: Str
         m.add(subj, p, m.createResource(ob.toString))
   }
 
+  /**
+   * This method permits to register multiple listeners on the Jena graph/model.
+   * This is useful to intercept triples/statements while added to the model.
+   * (For example to trascribe triples while they are added, or to send them to a remote triplestore)
+   */
+  def registerListeners[G](listeners: Seq[G]) = listeners.foreach(listener => registerListener(listener))
+
+  /**
+   * This method permits to register a Graph listener on the Jena graph,
+   * or a Model listener on the Jena Model.
+   * This is useful to intercept triples/statements while added to the model.
+   * (For example to trascribe triples while they are added, or to send them to a remote triplestore)
+   */
+  private def registerListener[L](listener: L) {
+    listener match {
+      case l: GraphListener => this.model.getGraph().getEventManager().register(l)
+      case l: ModelChangedListener => this.model.register(l)
+      case _ => throw new RuntimeException("type " + listener.getClass + " not supported as Listener")
+    }
+  }
+
   def generate(res: ResultSet) = {
-    val m = ModelFactory.createDefaultModel
-    val ds = DatasetFactory.create(m)
+
+    val ds = DatasetFactory.create(model)
     if (r2rml.tMaps.isEmpty)
       throw new Exception("No valid R2RML mappings in the provided document.")
     val queries = r2rml.tMaps.foreach { tMap =>
@@ -83,12 +109,12 @@ class RdfGenerator(r2rml: R2rmlReader, relational: RelationalModel, baseUri: Str
       iterateGenerate(res, tgen)
     }
     ds
-
   }
 
   def generate = {
-    val m = ModelFactory.createDefaultModel
-    val ds = DatasetFactory.create(m)
+
+    val ds = DatasetFactory.create(model)
+
     if (r2rml.tMaps.isEmpty)
       throw new Exception("No valid R2RML mappings in the provided document.")
 
