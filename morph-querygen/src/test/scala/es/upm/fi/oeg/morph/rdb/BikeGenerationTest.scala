@@ -17,8 +17,8 @@ import org.scalatest.Matchers
 class BikeGenerationTest extends FunSpec with Matchers {
 
   describe("A REST dataset mapped") {
-    val morph = new Morph
-    val ds = morph.generateRest("mappings/bikes.ttl")
+    val morph = Morph.createRestModel   
+    val ds = morph.generate("mappings/bikes.ttl")
     //.getDefaultModel.write(System.out,RDFFormat.N3)
     RiotWriter.writeNQuads(System.out, ds.asDatasetGraph)
   }

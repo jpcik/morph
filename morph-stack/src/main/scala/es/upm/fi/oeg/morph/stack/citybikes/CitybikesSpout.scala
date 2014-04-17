@@ -8,6 +8,7 @@ import play.api.libs.json.Json
 import play.api.libs.json.JsArray
 import collection.JavaConversions._
 import play.api.libs.json.JsString
+import play.api.libs._
 import akka.actor.Actor
 
 class CitybikesSpout(ids: Seq[String]) extends PeriodicSpout("morph.stack.citybikes") {

@@ -9,22 +9,52 @@ import es.upm.fi.oeg.morph.voc.RDFFormat
 import es.upm.fi.oeg.morph.relational.JDBCRelationalModel
 import java.net.URI
 import java.net.URL
+import com.hp.hpl.jena.graph.GraphListener
+import com.hp.hpl.jena.rdf.model.ModelChangedListener
+import com.typesafe.config.Config
+import es.upm.fi.oeg.morph.relational.EmptyModel
+import org.slf4j.LoggerFactory
 
-class Morph {
+/**
+ * this is the companion object containing the factory methods for instantiating different models
+ * (JDBC, REST, etc)
+ */
+object Morph {
 
-  private val conf = ConfigFactory.load.getConfig("morph")
-  private lazy val rest: RelationalModel = new RestRelationalModel
-  private lazy val jdbc = new JDBCRelationalModel(conf.getConfig("jdbc"))
+  def createJdbcModel = {
+    def conf = ConfigFactory.load.getConfig("morph")
+    new Morph(conf, new JDBCRelationalModel(conf.getConfig("jdbc")))
+  }
 
-  def generateJdbc(mapping: String) = generate(jdbc, mapping)
-  def generateRest(mapping: String) = generate(rest, mapping)
+  def createRestModel = new Morph(ConfigFactory.load.getConfig("morph"), new RestRelationalModel)
 
-  def generate(model: RelationalModel, mapping: String) = {
+}
+
+class Morph(
+  conf: Config,
+  model: RelationalModel,
+  listeners: Array[GraphListener] = Array.empty) {
+
+  val logger = LoggerFactory.getLogger(Morph.getClass())
+
+  def generate(mapping: String) = {
 
     val reader = R2rmlReader(mapping)
-    val ds = new RdfGenerator(reader, model, conf.getString("baseUri")).generate
-    //ds.getDefaultModel.write(System.out,RDFFormat.N3)
+    val generator = new RdfGenerator(reader, model, conf.getString("baseUri"))
+
+    generator.registerListeners(listeners)
+
+    val ds = generator.generate
+
     ds
   }
 
+  def registerListeners(listeners: Array[GraphListener] = Array.empty) = {
+    logger.debug("register listeners: {}", listeners)
+    val morph = new Morph(conf, model, listeners)
+    morph
+  }
+
 }
+
+

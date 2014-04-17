@@ -52,7 +52,7 @@ class SuiteTester(testPath:String,val name:String) extends Sparql{
     val jdbcConf=conf.getConfig("jdbc")
     val jdbc= new JDBCRelationalModel(jdbcConf,jdbcConf.getString("source.url")+name)
 
-    val ds =new Morph().generate(jdbc,testPath+"/"+name+"/"+ tc.mappingDoc)
+    val ds = new Morph(conf,jdbc).generate(testPath+"/"+name+"/"+ tc.mappingDoc)
     RDFDataMgr.write(System.out,ds.asDatasetGraph, Lang.NQUADS)
     val suffix=tc.mappingDoc.replace("r2rml","").dropRight(4)
     RDFDataMgr.write(new FileOutputStream(testPath+"/"+name+"/mapped"+suffix+"-morph.nq"),ds.asDatasetGraph,Lang.NQUADS)
