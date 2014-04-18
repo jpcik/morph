@@ -19,7 +19,6 @@ import es.upm.fi.oeg.morph.r2rml.PredicateObjectMap
 import es.upm.fi.oeg.morph.r2rml.LiteralType
 import es.upm.fi.oeg.morph.r2rml.IRIType
 import java.sql.SQLException
-import java.sql.ResultSet
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import es.upm.fi.oeg.siq.tools.URLTools
@@ -30,6 +29,8 @@ import es.upm.fi.oeg.morph.querygen.DefaultSQL
 import com.hp.hpl.jena.graph.GraphListener
 import com.hp.hpl.jena.graph.GraphEventManager
 import com.hp.hpl.jena.rdf.model.ModelChangedListener
+import es.upm.fi.oeg.morph.relational.DbDataset
+import es.upm.fi.oeg.morph.relational.Dataset
 
 class RelationalQueryException(msg: String, e: Throwable) extends Exception(msg, e)
 
@@ -39,13 +40,12 @@ class RdfGenerator(r2rml: R2rmlReader, relational: RelationalModel, baseUri: Str
 
   val model: Model = ModelFactory.createDefaultModel
 
-  //val baseUri="http://example.com/base/"
   type GeneratedTriple = (Resource, Property, Object, RDFDatatype)
 
   val df = new DecimalFormat("0.0##E0");
   val datef = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
 
-  private def addTriple(m: Model, subj: Resource, p: Property, obj: (Object, RDFDatatype), poMap: PredicateObjectMap) = {
+  private def addTriple(m: Model, subj: Resource, p: Property, obj: (Any, RDFDatatype), poMap: PredicateObjectMap) = {
     val (ob, datatype) = obj
     logger.debug("more data " + obj)
     val oMap = poMap.objectMap
@@ -97,15 +97,15 @@ class RdfGenerator(r2rml: R2rmlReader, relational: RelationalModel, baseUri: Str
     }
   }
 
-  def generate(res: ResultSet) = {
+  def generate(res: DbDataset) = {
 
     val ds = DatasetFactory.create(model)
     if (r2rml.tMaps.isEmpty)
       throw new Exception("No valid R2RML mappings in the provided document.")
-    val queries = r2rml.tMaps.foreach { tMap =>
+    r2rml.tMaps.foreach { tMap =>
       logger.debug("now this one " + tMap.uri)
       val tgen = new TripleGenerator(ds, tMap, baseUri)
-      res.beforeFirst
+      //res.beforeFirst
       iterateGenerate(res, tgen)
     }
     ds
@@ -143,11 +143,11 @@ class RdfGenerator(r2rml: R2rmlReader, relational: RelationalModel, baseUri: Str
     ds
   }
 
-  private def iterateGenerate(res: ResultSet, tgen: TripleGenerator) = {
+  private def iterateGenerate(res: Dataset, tgen: TripleGenerator) = {
     val ds = tgen.d
     val tMap = tgen.tm
-    while (res.next) {
-
+    while (res.hasNext) {
+      res.next
       val subj =
         if (relational.postProc) tgen.genSubjectPostProc(res)
         else tgen.genSubject(res)

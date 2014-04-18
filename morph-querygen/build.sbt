@@ -2,7 +2,7 @@ name := "morph-querygen"
 
 organization := "es.upm.fi.oeg.morph"
 
-version := "1.0.6"
+version := "1.0.7"
 
 libraryDependencies ++= Seq(
   "net.databinder.dispatch" %% "dispatch-core" % "0.9.5",

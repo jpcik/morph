@@ -2,7 +2,6 @@ package es.upm.fi.oeg.morph.execute
 import es.upm.fi.oeg.morph.r2rml.TriplesMap
 import com.hp.hpl.jena.rdf.model.AnonId
 import es.upm.fi.oeg.morph.r2rml.R2rmlUtils._
-import java.sql.ResultSet
 import es.upm.fi.oeg.morph.r2rml.R2rmlUtils
 import es.upm.fi.oeg.morph.r2rml.PredicateObjectMap
 import com.hp.hpl.jena.rdf.model.ResourceFactory
@@ -18,11 +17,11 @@ import es.upm.fi.oeg.siq.tools.XsdTypes
 import es.upm.fi.oeg.siq.tools.URLTools
 import es.upm.fi.oeg.morph.r2rml.IRIType
 import es.upm.fi.oeg.morph.r2rml.LiteralType
-import com.hp.hpl.jena.query.Dataset
 import es.upm.fi.oeg.morph.r2rml.SubjectMap
 import es.upm.fi.oeg.morph.r2rml.TermMap
 import com.hp.hpl.jena.rdf.model.Model
 import org.slf4j.LoggerFactory
+import es.upm.fi.oeg.morph.relational.Dataset
 
 trait MapGenerator {
 
@@ -43,7 +42,7 @@ trait MapGenerator {
 
 }
 
-case class TripleGenerator(d: Dataset, tm: TriplesMap, baseUri: String) extends MapGenerator {
+case class TripleGenerator(d: com.hp.hpl.jena.query.Dataset, tm: TriplesMap, baseUri: String) extends MapGenerator {
 
   val logger = LoggerFactory.getLogger(classOf[TripleGenerator])
 
@@ -54,11 +53,11 @@ case class TripleGenerator(d: Dataset, tm: TriplesMap, baseUri: String) extends 
     Normalizer.normalize(str, Normalizer.Form.NFD).replaceAll("[^\\w ]", "").replace(" ", "-").toLowerCase
   }
 
-  def genSubject(rs: ResultSet): Resource = genSubject(rs, "SUBJECT")
+  def genSubject(rs: Dataset): Resource = genSubject(rs, "SUBJECT")
 
-  def genSubject(rs: ResultSet, col: String) = {
+  def genSubject(rs: Dataset, col: String) = {
     val subj = tm.subjectMap
-    logger.debug("metacolumn " + rs.getMetaData.getColumnName(1))
+    //logger.debug("metacolumn " + rs.getMetaData.getColumnName(1))
     logger.debug("id column " + col)
     val id = rs.getString(col)
     if (id == null) null
@@ -67,7 +66,7 @@ case class TripleGenerator(d: Dataset, tm: TriplesMap, baseUri: String) extends 
     }
   }
 
-  def genSubjectPostProc(rs: ResultSet) = {
+  def genSubjectPostProc(rs: Dataset) = {
     val subj = tm.subjectMap
 
     val id =
@@ -88,14 +87,14 @@ case class TripleGenerator(d: Dataset, tm: TriplesMap, baseUri: String) extends 
     tm.subjectMap.classes
   }
 
-  def genGraph(rs: ResultSet) = {
+  def genGraph(rs: Dataset) = {
     val gMap = tm.subjectMap.graphMap
     if (gMap.template != null)
       URLTools.encode(rs.getString("SUBJECTGRAPH"))
     else null
   }
 
-  def graph(res: ResultSet, gmap: GraphMap) = {
+  def graph(res: Dataset, gmap: GraphMap) = {
     if (gmap == null) d.getDefaultModel
     else if (gmap.constant != null)
       if (d.getNamedModel(gmap.constant.asResource.getURI) != null)
@@ -114,27 +113,28 @@ case class TripleGenerator(d: Dataset, tm: TriplesMap, baseUri: String) extends 
 
 }
 
-case class POGenerator(ds: Dataset, poMap: PredicateObjectMap, parentTMap: TriplesMap, baseUri: String) extends MapGenerator {
+case class POGenerator(ds:com.hp.hpl.jena.query.Dataset, poMap:PredicateObjectMap, parentTMap: TriplesMap, baseUri: String) extends MapGenerator {
   def genPredicate = {
     ResourceFactory.createProperty(
       poMap.predicateMap.constant.asResource.getURI)
   }
 
-  def genRefObject(rs: ResultSet) = {
+  def genRefObject(rs: Dataset) = {
     poMap.refObjectMap.joinCondition.child
   }
 
-  def generate(subj: Resource, rs: ResultSet) = {
+  def generate(subj: Resource, rs: Dataset) = {
     //RefObjectMap
     if (poMap.refObjectMap != null) {
       val obj = new TripleGenerator(ds, parentTMap, baseUri).genSubject(rs, poMap.id)
       (obj, null)
     } //ObjectMap
     else {
-      val typeInResult = rs.getMetaData.getColumnType(rs.findColumn(poMap.id))
+      //val typeInResult = rs.getMetaData.getColumnType(rs.findColumn(poMap.id))
+      val typeInResult = rs.getType(poMap.id)
       val datatype = if (poMap.objectMap.dtype != null)
         poMap.objectMap.dtype
-      else XsdTypes.sqlType2XsdType(typeInResult)
+      else typeInResult//XsdTypes.sqlType2XsdType(typeInResult)
       if (poMap.objectMap.termType == IRIType)
         //(rs.getString(poMap.id),null)
         (createIriOrBNode(ds.getDefaultModel, rs.getString(poMap.id), poMap.objectMap, baseUri), null)
@@ -147,7 +147,7 @@ case class POGenerator(ds: Dataset, poMap: PredicateObjectMap, parentTMap: Tripl
     }
   }
 
-  def generate(rs: ResultSet) = {
+  def generate(rs: Dataset) = {
     //RefObjectMap
     if (poMap.refObjectMap != null) {
       val obj = new TripleGenerator(ds, parentTMap, baseUri).genSubjectPostProc(rs)
@@ -157,8 +157,9 @@ case class POGenerator(ds: Dataset, poMap: PredicateObjectMap, parentTMap: Tripl
         if (poMap.objectMap.termType == IRIType) null
         else if (poMap.objectMap.dtype != null) poMap.objectMap.dtype
         else if (poMap.objectMap.column != null) {
-          val typeInResult = rs.getMetaData.getColumnType(rs.findColumn(poMap.objectMap.column))
-          XsdTypes.sqlType2XsdType(typeInResult)
+          //val typeInResult = rs.getMetaData.getColumnType(rs.findColumn(poMap.objectMap.column))
+          //XsdTypes.sqlType2XsdType(typeInResult)
+          rs.getType(poMap.objectMap.column)
         } else null
 
       if (poMap.objectMap.template != null) {

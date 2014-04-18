@@ -2,11 +2,11 @@ name := "morph-r2rml-tc"
 
 organization := "es.upm.fi.oeg.morph"
 
-version := "1.0.6"
+version := "1.0.7"
 
 libraryDependencies ++= Seq(
   "postgresql" % "postgresql" % "9.1-901.jdbc4",
-  "ch.qos.logback" % "logback-classic" % "1.0.9" % "test",    
+  "ch.qos.logback" % "logback-classic" % "1.0.13" % "test",    
   "org.scalatest" % "scalatest_2.10" % "2.0.RC1" % "test"
 )
 

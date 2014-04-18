@@ -13,16 +13,17 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import play.api.libs.json.JsNumber
 import org.slf4j.LoggerFactory
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
 
 class RestRelationalModel() extends RelationalModel(null,true){
-  override def query(queryString:String):ResultSet={
+  override def query(queryString:String):Dataset={
     def metadata=Seq("id","name","timestamp","bikes","free")
     val metawithPos=metadata.zipWithIndex.toMap
     val svc = url("http://api.citybik.es/valenbisi.json")
     val resp = Http(svc OK as.String)
     val json:JsArray = Json.parse(resp()).asInstanceOf[JsArray]
     val data=json.value.map{js=>
-      val tt=new MapResult("bizi",metawithPos,metadata.map{s=>
+      val tt=new MapResult("bizi",metadata,metadata.map{s=>
        (js \ s) match{
           case st:JsString=>st.value
           case p =>p.toString          
@@ -34,46 +35,29 @@ class RestRelationalModel() extends RelationalModel(null,true){
   } 
 }
 
-class MapResult(name:String,metadata:Map[String,Int],values:Seq[String]) extends RestResult(name,metadata.keys.toSet){
-  val logger = LoggerFactory.getLogger(classOf[MapResult])
+class MapResult(name:String,metadata:Seq[String],values:Seq[String]) extends RestResult(name,metadata){
+  private val logger = LoggerFactory.getLogger(classOf[MapResult])
+  val idx=metadata.zipWithIndex.toMap
   logger.debug(values.mkString("--"))
-  override def getValue(fieldName:String)=values(metadata(fieldName))
+  override def getValue(fieldName:String)=values(idx(fieldName))
 }
 
-abstract class RestResult(val resultName:String,val fieldNames:Set[String]){
+abstract class RestResult(val resultName:String,val fieldNames:Seq[String]){
   def getValue(fieldName:String):String
 }
 
-class RestResultSet(val records:Stream[RestResult],val metadata:Map[String,String]) extends BaseResultSet{
+class RestResultSet(val records:Stream[RestResult],val metadata:Map[String,String]) extends Dataset{
   val it=records.iterator
   var current:RestResult=_
   
-  override def next:Boolean ={ 
-	if (it.hasNext){
-      current=it.next
-      true
-	}
-	else false
+  override def hasNext=it.hasNext
+  override def next={
+    current=it.next; new Row
   }
-
-  override def close {records.clear }
-	
-  private val metaData:ResultSetMetaData= {
-	val md:RowSetMetaData = new RowSetMetaDataImpl   
-	md.setColumnCount(metadata.size)
-	var i=1
-	metadata.foreach{e=>
-	  md.setColumnLabel(i, e._1)
-	  md.setColumnType(i, Types.VARCHAR)
-	  i+=1
-	}
-	md
+  override def getType(name:String)={
+    XSDDatatype.XSDstring
   }
-				
-  override def getMetaData:ResultSetMetaData=  metaData  
-  override def findColumn(column:String)=0
-  override def getObject(i:Int)=null	
-  override def getObject(columnLabel:String):Object={
+  override def getObject(columnLabel:String):Any={
     current.getValue(columnLabel)
   }	
   override def getString(columnLabel:String):String=getObject(columnLabel:String).toString

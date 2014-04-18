@@ -25,7 +25,7 @@ class JDBCRelationalModel(conf: Config, url: String) extends RelationalModel(con
     
     logger.debug("\n{}\n", query)
     
-    st.executeQuery(query)
+    new DbDataset(st.executeQuery(query))
   }
 
   private def getConnection = DriverManager.getConnection(sourceUrl, user, password)
