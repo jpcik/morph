@@ -1,5 +1,4 @@
 package es.upm.fi.oeg.morph.tc
-import es.upm.fi.oeg.morph.execute.RelationalQueryException
 import es.upm.fi.oeg.morph.r2rml.R2rmlModelException
 
 class D003Test extends R2RMLTest("D003-1table3columns1row") {

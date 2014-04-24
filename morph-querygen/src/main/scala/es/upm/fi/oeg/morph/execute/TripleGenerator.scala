@@ -1,27 +1,19 @@
 package es.upm.fi.oeg.morph.execute
-import es.upm.fi.oeg.morph.r2rml.TriplesMap
-import com.hp.hpl.jena.rdf.model.AnonId
+import es.upm.fi.oeg.morph.r2rml._
 import es.upm.fi.oeg.morph.r2rml.R2rmlUtils._
-import es.upm.fi.oeg.morph.r2rml.R2rmlUtils
-import es.upm.fi.oeg.morph.r2rml.PredicateObjectMap
+import es.upm.fi.oeg.morph.db.dataset.Dataset
+import com.hp.hpl.jena.rdf.model.Model
 import com.hp.hpl.jena.rdf.model.ResourceFactory
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
-import java.sql.Types
+import com.hp.hpl.jena.rdf.model.ModelFactory
 import com.hp.hpl.jena.rdf.model.Resource
 import com.hp.hpl.jena.rdf.model.Statement
+import com.hp.hpl.jena.rdf.model.AnonId
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
 import com.hp.hpl.jena.graph.Triple
 import java.net.URLEncoder
-import es.upm.fi.oeg.morph.r2rml.GraphMap
-import com.hp.hpl.jena.rdf.model.ModelFactory
 import es.upm.fi.oeg.siq.tools.XsdTypes
 import es.upm.fi.oeg.siq.tools.URLTools
-import es.upm.fi.oeg.morph.r2rml.IRIType
-import es.upm.fi.oeg.morph.r2rml.LiteralType
-import es.upm.fi.oeg.morph.r2rml.SubjectMap
-import es.upm.fi.oeg.morph.r2rml.TermMap
-import com.hp.hpl.jena.rdf.model.Model
 import org.slf4j.LoggerFactory
-import es.upm.fi.oeg.morph.relational.Dataset
 
 trait MapGenerator {
 
@@ -47,23 +39,20 @@ case class TripleGenerator(d: com.hp.hpl.jena.query.Dataset, tm: TriplesMap, bas
   val logger = LoggerFactory.getLogger(classOf[TripleGenerator])
 
   def genModel = d.getDefaultModel
-
+/*
   def slugify(str: String): String = {
     import java.text.Normalizer
     Normalizer.normalize(str, Normalizer.Form.NFD).replaceAll("[^\\w ]", "").replace(" ", "-").toLowerCase
-  }
+  }*/
 
   def genSubject(rs: Dataset): Resource = genSubject(rs, "SUBJECT")
 
   def genSubject(rs: Dataset, col: String) = {
     val subj = tm.subjectMap
-    //logger.debug("metacolumn " + rs.getMetaData.getColumnName(1))
     logger.debug("id column " + col)
     val id = rs.getString(col)
     if (id == null) null
-    else {
-      createIriOrBNode(genModel, id, subj, baseUri)
-    }
+    else createIriOrBNode(genModel, id, subj, baseUri)    
   }
 
   def genSubjectPostProc(rs: Dataset) = {
@@ -71,14 +60,14 @@ case class TripleGenerator(d: com.hp.hpl.jena.query.Dataset, tm: TriplesMap, bas
 
     val id =
       if (subj.template != null) {
-        val vars = R2rmlUtils.extractTemplateVals(subj.template)
-        val result = R2rmlUtils.replaceTemplate(subj.template, vars.map(v => rs.getString(v)))
-        result
+        val vars = extractTemplateVals(subj.template)
+        val replacing= vars.map(v => rs.getString(v))
+        if (replacing.contains(null)) null
+        else replaceTemplate(subj.template,replacing)        
       } else if (subj.column != null)
         rs.getString(subj.column)
       else
         subj.constant.toString
-    //val id=rs.getString(col)
     if (id == null) null
     else createIriOrBNode(genModel, id, subj, baseUri)
   }
@@ -156,15 +145,13 @@ case class POGenerator(ds:com.hp.hpl.jena.query.Dataset, poMap:PredicateObjectMa
       val datatype =
         if (poMap.objectMap.termType == IRIType) null
         else if (poMap.objectMap.dtype != null) poMap.objectMap.dtype
-        else if (poMap.objectMap.column != null) {
-          //val typeInResult = rs.getMetaData.getColumnType(rs.findColumn(poMap.objectMap.column))
-          //XsdTypes.sqlType2XsdType(typeInResult)
-          rs.getType(poMap.objectMap.column)
-        } else null
+        else if (poMap.objectMap.column != null) 
+          rs.getType(poMap.objectMap.column)         
+        else null
 
       if (poMap.objectMap.template != null) {
-        val vars = R2rmlUtils.extractTemplateVals(poMap.objectMap.template)
-        val result = R2rmlUtils.replaceTemplate(poMap.objectMap.template, vars.map(v => rs.getString(v)))
+        val vars = extractTemplateVals(poMap.objectMap.template)
+        val result = replaceTemplate(poMap.objectMap.template, vars.map(v => rs.getString(v)))
         (result, datatype)
       } else if (poMap.objectMap.column != null)
         (rs.getString(poMap.objectMap.column), datatype)

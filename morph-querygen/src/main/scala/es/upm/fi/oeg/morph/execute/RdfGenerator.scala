@@ -1,38 +1,30 @@
 package es.upm.fi.oeg.morph.execute
 import collection.JavaConversions._
 import com.hp.hpl.jena.rdf.model.ModelFactory
-import com.hp.hpl.jena.query.DatasetFactory
-import es.upm.fi.oeg.morph.voc.RDF
-import es.upm.fi.oeg.morph.r2rml.R2rmlReader
-import es.upm.fi.oeg.morph.querygen.RdbQueryGenerator
-import es.upm.fi.oeg.morph.relational.RelationalModel
-import java.sql.Types
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
-import java.sql.SQLSyntaxErrorException
-import com.hp.hpl.jena.rdf.model.Resource
-import com.hp.hpl.jena.sparql.core.DatasetGraph
-import es.upm.fi.oeg.morph.r2rml.GraphMap
 import com.hp.hpl.jena.rdf.model.Model
 import com.hp.hpl.jena.rdf.model.Property
+import com.hp.hpl.jena.rdf.model.Resource
+import com.hp.hpl.jena.rdf.model.ModelChangedListener
+import com.hp.hpl.jena.query.DatasetFactory
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
 import com.hp.hpl.jena.datatypes.RDFDatatype
-import es.upm.fi.oeg.morph.r2rml.PredicateObjectMap
-import es.upm.fi.oeg.morph.r2rml.LiteralType
-import es.upm.fi.oeg.morph.r2rml.IRIType
+import com.hp.hpl.jena.sparql.core.DatasetGraph
+import com.hp.hpl.jena.graph.GraphListener
+import com.hp.hpl.jena.graph.GraphEventManager
+import es.upm.fi.oeg.morph.voc.RDF
+import es.upm.fi.oeg.morph.r2rml._
+import es.upm.fi.oeg.morph.db.SQLDialect
+import es.upm.fi.oeg.morph.db.DefaultSQL
+import es.upm.fi.oeg.morph.db.RelationalModel
+import es.upm.fi.oeg.morph.db.JDBCRelationalModel
+import es.upm.fi.oeg.morph.db.dataset.Dataset
+import es.upm.fi.oeg.siq.tools.URLTools
+import java.sql.SQLSyntaxErrorException
 import java.sql.SQLException
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
-import es.upm.fi.oeg.siq.tools.URLTools
 import org.slf4j.LoggerFactory
-import es.upm.fi.oeg.morph.relational.JDBCRelationalModel
-import es.upm.fi.oeg.morph.querygen.SQLDialect
-import es.upm.fi.oeg.morph.querygen.DefaultSQL
-import com.hp.hpl.jena.graph.GraphListener
-import com.hp.hpl.jena.graph.GraphEventManager
-import com.hp.hpl.jena.rdf.model.ModelChangedListener
-import es.upm.fi.oeg.morph.relational.DbDataset
-import es.upm.fi.oeg.morph.relational.Dataset
 
-class RelationalQueryException(msg: String, e: Throwable) extends Exception(msg, e)
 
 class RdfGenerator(r2rml: R2rmlReader, relational: RelationalModel, baseUri: String) {
 
@@ -97,48 +89,43 @@ class RdfGenerator(r2rml: R2rmlReader, relational: RelationalModel, baseUri: Str
     }
   }
 
-  def generate(res: DbDataset) = {
-
-    val ds = DatasetFactory.create(model)
+  def generate(rsName:String,res: Dataset) = {
+    val ds = DatasetFactory.create(model)    
     if (r2rml.tMaps.isEmpty)
       throw new Exception("No valid R2RML mappings in the provided document.")
-    r2rml.tMaps.foreach { tMap =>
-      logger.debug("now this one " + tMap.uri)
-      val tgen = new TripleGenerator(ds, tMap, baseUri)
-      //res.beforeFirst
-      iterateGenerate(res, tgen)
+    r2rml.tMaps.foreach { tMap =>      
+      logger.debug("Processing TMap: " + tMap.uri)
+      if (tMap.logicalTable.tableName==rsName){
+        val tgen = new TripleGenerator(ds, tMap, baseUri)
+        //res.beforeFirst
+        iterateGenerate(res, tgen)
+      }
     }
     ds
   }
 
   def generate = {
-
-    val ds = DatasetFactory.create(model)
-
     if (r2rml.tMaps.isEmpty)
       throw new Exception("No valid R2RML mappings in the provided document.")
 
+    implicit val r2rmodel=r2rml
+    val ds = DatasetFactory.create(model)
+
     // SQL Dialect detection, useful for tracking small differences in query construction
-    val sqlDialect = if (relational.isInstanceOf[JDBCRelationalModel])
-      SQLDialect(relational.asInstanceOf[JDBCRelationalModel].SQL_DIALECT)
-    else
-      new DefaultSQL
-
+    /*val sqlDialect = relational match {
+      case jdbc:JDBCRelationalModel=>jdbc.sqlDialect
+      case _ => new DefaultSQL
+    }*/
     //////////////////////////////////////////////////////////
-    val queries = r2rml.tMaps.foreach { tMap =>
-      val q = new RdbQueryGenerator(tMap, r2rml, sqlDialect).query
-      logger.debug("query {}\n", q)
-
-      val res = try relational.query(q)
-      catch {
-        case ex: SQLSyntaxErrorException => throw new RelationalQueryException("Invalid query syntax: " + ex.getMessage, ex)
-        case ex: SQLException => throw new RelationalQueryException("Invalid query: " + ex.getMessage, ex)
-      }
-
+    val queries=relational.queries(r2rml)
+    r2rml.tMaps.zip(queries).foreach{case (tMap,query)=>
+    //r2rml.tMaps.foreach { tMap =>
+    //  val query=relational.generator(tMap).query
+      //val query = new RdbQueryGenerator(tMap,sqlDialect).query            
+      val res = relational.query(query)            
       val tgen = new TripleGenerator(ds, tMap, baseUri)
       iterateGenerate(res, tgen)
     }
-
     //////////////////////////////////////////////////////////
     ds
   }

@@ -1,4 +1,4 @@
-package es.upm.fi.oeg.morph.querygen
+package es.upm.fi.oeg.morph.db
 
 object SQLDialect {
   def apply(name: String): SQLDialect = {

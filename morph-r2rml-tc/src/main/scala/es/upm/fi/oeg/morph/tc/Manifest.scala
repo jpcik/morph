@@ -1,26 +1,20 @@
 package es.upm.fi.oeg.morph.tc
 
 import java.io.FileInputStream
-import collection.JavaConversions._
-import com.hp.hpl.jena.rdf.model._
-import com.hp.hpl.jena.query.QueryFactory
-import com.hp.hpl.jena.query.QueryExecution
-import com.hp.hpl.jena.query.QueryExecutionFactory
-import com.hp.hpl.jena.query.QuerySolution
-import com.hp.hpl.jena.query.ResultSet
-import com.hp.hpl.jena.query.Query
-import com.hp.hpl.jena.graph.Node
-import com.hp.hpl.jena.graph.Triple
-import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock
-import es.upm.fi.oeg.morph.tc.voc.Rdb2RdfTest
-import com.hp.hpl.jena.sparql.core.TriplePath
-import es.upm.fi.oeg.morph.tc.voc.DCTerms
-import es.upm.fi.oeg.morph.voc.RDF
-import es.upm.fi.oeg.morph.voc.RDFFormat
-import es.upm.fi.oeg.siq.sparql.Sparql
+
+import scala.collection.JavaConversions.asScalaIterator
+
 import org.slf4j.LoggerFactory
 
+import com.hp.hpl.jena.query.QueryExecutionFactory
+import com.hp.hpl.jena.rdf.model.ModelFactory
 
+import es.upm.fi.oeg.morph.tc.voc.DCTerms
+import es.upm.fi.oeg.morph.tc.voc.Rdb2RdfTest
+import es.upm.fi.oeg.morph.voc.RDF
+import es.upm.fi.oeg.morph.voc.RDFFormat
+import es.upm.fi.oeg.morph.voc.RDFFormat.getString
+import es.upm.fi.oeg.siq.sparql.Sparql
 
 class Database(val id:String,val title:String,
     val scriptFile:String,val testcases:Array[TestCase])
@@ -28,16 +22,12 @@ class Database(val id:String,val title:String,
 class TestCase(val id:String, val title:String, val mappingDoc:String, 
     val hasOutput:Boolean,val output:String)
 
-class Manifest(val name:String,val database:Database) {
-  }
-
+class Manifest(val name:String,val database:Database) 
 
 object Manifest extends Sparql{
   
-  val logger = LoggerFactory.getLogger(classOf[Manifest])
-  
-  //val prefixes="prefix test: <http://www.w3.org/2006/03/test-description#> "
-    
+  val logger = LoggerFactory.getLogger(classOf[Manifest]) 
+
   val tgs=Group(
     ^("db",(RDF.typeProp,Rdb2RdfTest.dataBase),
            (DCTerms.identifier,"id"),
@@ -58,14 +48,17 @@ object Manifest extends Sparql{
     reader.read(m,new FileInputStream(path),"")
 	val qexec = QueryExecutionFactory.create(queryt.serialize, m) 
 	val results = qexec.execSelect.toList
-
 	val tcases=results.map(qs=>
 	    new TestCase(qs.getLiteral("tcid").getString,"",qs.getLiteral("mapping"),
 	        qs.getLiteral("hasoutput").getBoolean,qs.getLiteral("output")))
 	logger.debug(tcases.length.toString)
-	val db=new Database(results.head.getLiteral("id").getString,"",
-	    results.head.getLiteral("script").getString,tcases.toArray)
-	new Manifest(name,db)  
+
+    if (results.size>0){ 
+  	  val db=new Database(results.head.getLiteral("id").getString,"",
+	      results.head.getLiteral("script").getString,tcases.toArray)
+	  new Manifest(name,db)
+    }
+    else new Manifest(name,null)
   }		
   
   

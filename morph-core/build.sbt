@@ -7,9 +7,9 @@ organization := "es.upm.fi.oeg.morph"
 version := "1.0.6"
 
 libraryDependencies ++= Seq(
-  "org.apache.jena" % "jena-core" % "2.11.0" intransitive,
-  "org.apache.jena" % "jena-arq" % "2.11.0" intransitive,
-  "org.apache.jena" % "jena-iri" % "1.0.0" intransitive,
+  "org.apache.jena" % "jena-core" % "2.11.0",
+  "org.apache.jena" % "jena-arq" % "2.11.0" ,
+  "org.apache.jena" % "jena-iri" % "1.0.0" ,
   "xerces" % "xercesImpl" % "2.11.0" ,
   "org.slf4j" % "slf4j-api" % "1.7.5",
   "ch.qos.logback" % "logback-classic" % "1.0.13" % "test",      

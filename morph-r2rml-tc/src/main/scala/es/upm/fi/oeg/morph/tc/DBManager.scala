@@ -10,21 +10,21 @@ class DBManager(driver:String,db:String,user:String,pass:String,createSchema:Boo
   val c=  Class.forName(driver).newInstance
   def connection=getConnection(db,user,pass)
   def createDB(script:String){
-    val c = connection		
+    val con = connection		
     if (createSchema)
-      c.prepareStatement("CREATE SCHEMA PUBLIC").execute
+      con.prepareStatement("CREATE SCHEMA PUBLIC").execute
 
     script.split(';').foreach{s=>
       logger.debug("executing: "+s)
       if (s.size>5)        
-        c.prepareStatement(s).execute
+        con.prepareStatement(s).execute
     }		
-	c.close
+	con.close
   }
-  def clearDB{
-    val c=connection
-    c.prepareStatement("DROP SCHEMA PUBLIC CASCADE").execute
-    c.close
+  def clearDB:Unit={
+    val con=connection
+    con.prepareStatement("DROP SCHEMA PUBLIC CASCADE").execute
+    con.close
   }
   
 }

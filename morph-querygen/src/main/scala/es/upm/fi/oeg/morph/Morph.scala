@@ -1,19 +1,16 @@
 package es.upm.fi.oeg.morph
 
-import com.typesafe.config.ConfigFactory
-import es.upm.fi.oeg.morph.r2rml.R2rmlReader
-import es.upm.fi.oeg.morph.execute.RdfGenerator
-import es.upm.fi.oeg.morph.relational.RestRelationalModel
-import es.upm.fi.oeg.morph.relational.RelationalModel
-import es.upm.fi.oeg.morph.voc.RDFFormat
-import es.upm.fi.oeg.morph.relational.JDBCRelationalModel
-import java.net.URI
-import java.net.URL
-import com.hp.hpl.jena.graph.GraphListener
-import com.hp.hpl.jena.rdf.model.ModelChangedListener
-import com.typesafe.config.Config
-import es.upm.fi.oeg.morph.relational.EmptyModel
 import org.slf4j.LoggerFactory
+
+import com.hp.hpl.jena.graph.GraphListener
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+
+import es.upm.fi.oeg.morph.db.JDBCRelationalModel
+import es.upm.fi.oeg.morph.db.RelationalModel
+import es.upm.fi.oeg.morph.db.RestRelationalModel
+import es.upm.fi.oeg.morph.execute.RdfGenerator
+import es.upm.fi.oeg.morph.r2rml.R2rmlReader
 
 /**
  * this is the companion object containing the factory methods for instantiating different models
@@ -21,18 +18,19 @@ import org.slf4j.LoggerFactory
  */
 object Morph {
 
+  val conf= ConfigFactory.load.getConfig("morph")
   def createJdbcModel = {
-    def conf = ConfigFactory.load.getConfig("morph")
     new Morph(conf, new JDBCRelationalModel(conf.getConfig("jdbc")))
   }
 
-  def createRestModel = new Morph(ConfigFactory.load.getConfig("morph"), new RestRelationalModel)
+  def createRestModel = {
+    new Morph(conf, new RestRelationalModel(conf.getConfig("rest")))
+  }
 
 }
 
 class Morph(
-  conf: Config,
-  model: RelationalModel,
+  conf: Config,model: RelationalModel,
   listeners: Array[GraphListener] = Array.empty) {
 
   val logger = LoggerFactory.getLogger(Morph.getClass())

@@ -1,10 +1,9 @@
-package es.upm.fi.oeg.morph.relational
+package es.upm.fi.oeg.morph.db.dataset
 
 import java.sql.ResultSet
 import com.hp.hpl.jena.datatypes.RDFDatatype
 import es.upm.fi.oeg.siq.tools.XsdTypes
 import org.slf4j.LoggerFactory
-
 
 trait Dataset extends Iterator[Row]{
   override def hasNext:Boolean
@@ -15,7 +14,6 @@ trait Dataset extends Iterator[Row]{
 }
 
 class Row()
-
 
 class DbDataset(rs:ResultSet) extends Dataset{
   private val logger = LoggerFactory.getLogger(classOf[DbDataset])
@@ -33,7 +31,6 @@ class DbDataset(rs:ResultSet) extends Dataset{
   }
   override def hasNext=rs.next
   override def next={
-    //rs.next    
     new Row()
   }
   override def getObject(name:String)=rs.getObject(name)

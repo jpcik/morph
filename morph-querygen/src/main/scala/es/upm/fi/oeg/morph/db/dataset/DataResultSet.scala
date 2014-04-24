@@ -1,4 +1,4 @@
-package es.upm.fi.oeg.morph.relational
+package es.upm.fi.oeg.morph.db.dataset
 import org.slf4j.LoggerFactory
 import javax.sql.rowset.RowSetMetaDataImpl
 import javax.sql.RowSetMetaData

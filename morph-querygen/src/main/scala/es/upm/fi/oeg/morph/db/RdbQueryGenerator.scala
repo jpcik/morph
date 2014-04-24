@@ -1,4 +1,4 @@
-package es.upm.fi.oeg.morph.querygen
+package es.upm.fi.oeg.morph.db
 import es.upm.fi.oeg.morph.r2rml.TriplesMap
 import es.upm.fi.oeg.morph.r2rml.R2rmlReader
 import es.upm.fi.oeg.morph.r2rml.JoinCondition
@@ -6,14 +6,20 @@ import es.upm.fi.oeg.morph.r2rml.RefObjectMap
 import es.upm.fi.oeg.morph.r2rml.R2rmlUtils._
 import org.slf4j.LoggerFactory
 
-class RdbQueryGenerator(val tm: TriplesMap, r2rml: R2rmlReader, sqlDialect: SQLDialect = new DefaultSQL) {
+trait QueryGenerator{
+  def query:String
+}
 
-  val logger = LoggerFactory.getLogger(RdbQueryGenerator.getClass());
+class RdbQueryGenerator(val tm: TriplesMap, 
+    sqlDialect: SQLDialect = new DefaultSQL)(implicit r2rml: R2rmlReader) extends QueryGenerator{
 
-  def formatTemplate(template: String, alias: String): String =
+  private val logger = LoggerFactory.getLogger(RdbQueryGenerator.getClass());
+  private val concatChar=sqlDialect.concatChar
+  
+  private def formatTemplate(template: String, alias: String): String =
     formatTemplate(template, alias, null, null)
 
-  def formatTemplate(template: String, alias: String, colName: String, parent: TriplesMap, concatChar: String = sqlDialect.concatChar) = {
+  private def formatTemplate(template: String, alias: String, colName: String, parent: TriplesMap) = {
 
     logger.debug("using SQL DIALECT: " + sqlDialect)
 
@@ -32,18 +38,20 @@ class RdbQueryGenerator(val tm: TriplesMap, r2rml: R2rmlReader, sqlDialect: SQLD
     "(" + vars + ") AS " + alias
   }
 
-  def formatSubjectTemplate =
+  private def formatSubjectTemplate =
     formatTemplate(tm.subjectMap.template, "subject")
 
-  def formatColumn(column: String): String = formatColumn(column, null)
-  def formatColumn(column: String, table: String) =
+  private def formatColumn(column: String): String = formatColumn(column, null)
+  private def formatColumn(column: String, table: String) =
     if (table != null) table + "." + column
     else if (column.startsWith("\"")) column
     else column // "\""+column+"\""
 
   def formatTable(table: String) = table
-  def fromTable =
-    if (tm.logicalTable.tableName != null) formatTable(tm.logicalTable.tableName) + " TABLE1 " + joinTables
+  
+  private def fromTable =
+    if (tm.logicalTable.tableName != null) 
+      formatTable(tm.logicalTable.tableName) + " TABLE1 " + joinTables
     else formatQuery(tm.logicalTable.sqlQuery) + " TABLE1 " + joinTables
 
   private def formatQuery(q: String) = {
@@ -70,31 +78,37 @@ class RdbQueryGenerator(val tm: TriplesMap, r2rml: R2rmlReader, sqlDialect: SQLD
     //else ""
   }
 
-  def selectSubject =
+  private def selectSubject =
     if (tm.subjectMap.column != null) formatColumn(tm.subjectMap.column) + " AS subject"
     else if (tm.subjectMap.template != null) formatSubjectTemplate
     else "'" + tm.subjectMap.constant + "' AS subject"
 
-  def selectObject = {
+  private def selectObject = {
     tm.poMaps.map { po =>
-      if (po.objectMap != null && po.objectMap.col != null) formatColumn(po.objectMap.col, "TABLE1") + " AS " + po.id
-      else if (po.objectMap != null && po.objectMap.temp != null) formatTemplate(po.objectMap.temp, po.id)
-      else if (po.objectMap != null && po.objectMap.constant != null) "'" + po.objectMap.constant + "' AS " + po.id
+      if (po.objectMap != null && po.objectMap.col != null) 
+        formatColumn(po.objectMap.col, "TABLE1") + " AS " + po.id
+      else if (po.objectMap != null && po.objectMap.temp != null) 
+        formatTemplate(po.objectMap.temp, po.id)
+      else if (po.objectMap != null && po.objectMap.constant != null) 
+        "'" + po.objectMap.constant + "' AS " + po.id
       else if (po.refObjectMap != null) {
         val parent = r2rml.tMaps.find(_.uri == po.refObjectMap.parentTriplesMap).get
-        val childCol = if (po.refObjectMap.joinCondition != null) po.refObjectMap.joinCondition.child
-        else parent.subjectMap.column
+        val childCol = 
+          if (po.refObjectMap.joinCondition != null) po.refObjectMap.joinCondition.child
+          else parent.subjectMap.column
         if (parent.subjectMap.template != null)
           formatTemplate(parent.subjectMap.template, po.id, childCol, null)
         else
           parent.subjectMap.column + " AS " + po.id
-      } else po.objectMap.toString
+      } 
+      else po.objectMap.toString
     }.mkString(",")
   }
 
-  def selectGraph = {
+  private def selectGraph = {
     val gMap = tm.subjectMap.graphMap
-    if (gMap != null && gMap.template != null) "," + formatTemplate(gMap.template, "subjectGraph")
+    if (gMap != null && gMap.template != null) 
+      "," + formatTemplate(gMap.template, "subjectGraph")
     else ""
   }
 
@@ -111,13 +125,12 @@ class RdbQueryGenerator(val tm: TriplesMap, r2rml: R2rmlReader, sqlDialect: SQLD
     roMaps.filter(_.joinCondition != null).map(romap => formatJoinCondition(romap))
   }
 
-  def where =
+  private def where =
     if (joinConditions.size > 0)
       " WHERE " + joinConditions.mkString(" and ")
     else ""
 
-  def query = {
+  override def query = {
     "SELECT " + selectSubject + selectGraph + "," + selectObject + " FROM " + fromTable //+where 
   }
 }
-
