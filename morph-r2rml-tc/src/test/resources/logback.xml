@@ -7,7 +7,7 @@
 	</appender>	
 	
 	<logger name="es.upm.fi.oeg.morph" level="DEBUG" />
-	
+	<logger name="es.upm.fi.oeg.morph.r2rml.R2rmlReader" level="INFO" />
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />
 	</root>

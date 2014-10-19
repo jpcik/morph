@@ -20,6 +20,7 @@ class RestRelationalModel(conf:Config) extends RelationalModel(null,true){
   
   override def query(queryString:String):Dataset={
     val svc = url(conf.getString("url"))
+    import concurrent.ExecutionContext.Implicits.global 
     val resp = Http(svc OK as.String)
     val json:JsArray = Json.parse(resp()).asInstanceOf[JsArray]
     val data=json.value.map{js=>

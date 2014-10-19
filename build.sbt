@@ -4,7 +4,7 @@ organization := "es.upm.fi.oeg.morph"
 
 version := "1.0.4"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.11.2"
 
 crossPaths := false
 

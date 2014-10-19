@@ -17,6 +17,7 @@ import java.sql.Time
 import java.sql.Timestamp
 import java.util.Calendar
 
+@Deprecated
 trait BaseResultSet extends ResultSet{
   override def unwrap[T](iface:Class[T]): T = null.asInstanceOf[T]
   override def isWrapperFor(iface:Class[_]): Boolean = false

@@ -23,15 +23,15 @@ class RecordDataset(val records:Stream[Record],val metadata:Metadata) extends Da
   }	
 }
 
-case class Metadata(datasetName:String,fieldsMeta:Map[String,Any]){
+case class Metadata(datasetName:String,fieldsMeta:Seq[(String,Any)]){
   val fields=fieldsMeta.zipWithIndex.map{f=>
     f._1._1->RecordMetadata(f._1._1,f._1._2,f._2)
   }.toMap
 }
 
 object Metadata{
-  def apply(datasetName:String,fields:Seq[String])=
-    new Metadata(datasetName,fields.map(f=>f->XSDDatatype.XSDstring).toMap)
+  def apply(datasetName:String,fields:Seq[String])(implicit d: DummyImplicit)=
+    new Metadata(datasetName,fields.map(f=>f->XSDDatatype.XSDstring))
 }
 
 case class RecordMetadata(name:String,datatype:Any,pos:Int)  

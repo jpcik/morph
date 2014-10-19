@@ -12,10 +12,10 @@ resolvers ++= Seq("clojars" at "http://clojars.org/repo/",
 libraryDependencies ++= Seq(
   "storm" % "storm" % "0.8.2" % "provided",
   "org.apache.httpcomponents" % "httpclient" % "4.2.5",  
-  "net.databinder.dispatch" %% "dispatch-core" % "0.9.5",  
-  "com.typesafe.akka" %% "akka-actor" % "2.1.2",
-  "com.typesafe.akka" %% "akka-remote" % "2.1.2",
-  "com.typesafe.akka" %% "akka-kernel" % "2.1.2")
+  "net.databinder.dispatch" %% "dispatch-core" % "0.11.2",  
+  "com.typesafe.akka" %% "akka-actor" % "2.3.5",
+  "com.typesafe.akka" %% "akka-remote" % "2.3.5",
+  "com.typesafe.akka" %% "akka-kernel" % "2.3.5")
 
 // This is to prevent error [java.lang.OutOfMemoryError: PermGen space]
 javaOptions += "-XX:MaxPermSize=1g"

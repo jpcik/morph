@@ -5,6 +5,7 @@ import javax.sql.RowSetMetaData
 import java.sql.ResultSetMetaData
 import java.sql.Types
 
+@Deprecated
 class DataResultSet(val records:Seq[Array[Any]], 
     val metadata: Map[String, String],queryVars:Array[String]) extends BaseResultSet {
   private var it = records.iterator

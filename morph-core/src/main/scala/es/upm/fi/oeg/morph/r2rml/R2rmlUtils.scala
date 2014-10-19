@@ -34,9 +34,12 @@ object R2rmlUtils {
   }
     
   def replaceTemplate(template:String,values:Array[String])={
-     val vars=extractTemplateVals(template) zip values
-     var res=template
-     vars.foreach{v=>res=res.replace("{"+v._1+"}",v._2)}
-     res
+    if (values.contains(null)) null
+    else {
+      val vars=extractTemplateVals(template) zip values
+      var res=template
+      vars.foreach{v=>res=res.replace("{"+v._1+"}",v._2)}
+      res
+    }
   }
 }
